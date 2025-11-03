@@ -2,20 +2,64 @@
 @tailwind components;
 @tailwind utilities;
 
-:root { color-scheme: dark; }
-
-html, body {
-  padding: 0;
-  margin: 0;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
-  background-color: black;
-  color: white;
-  height: 100%;
+/* ===== Theme ===== */
+:root{
+  --bg: #0b0b0d;
+  --surface: #111113;
+  --border: #242428;
+  --text: #ffffff;
+  --muted: rgba(255,255,255,.80);
+  --muted2: rgba(255,255,255,.60);
+  --accent: #FF2D55;
+  --accent-weak: rgba(255,45,85,.15);
 }
 
-* { box-sizing: border-box; }
-
-button {
-  cursor: pointer;
-  transition: all 0.2s ease;
+*{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html,body{ height:100%; }
+html{ color-scheme:dark; }
+body{
+  margin:0; background:var(--bg); color:var(--text);
+  font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
 }
+
+/* Typography */
+.h2{ font-size:16px; font-weight:600; letter-spacing:-0.01em; }
+.body{ font-size:13px; color:var(--muted); }
+.caption{ font-size:11px; color:var(--muted2); }
+
+/* Cards & sections */
+.card{ background:var(--surface); border:1px solid var(--border); border-radius:16px; overflow:hidden; }
+.section{ padding:16px; }
+.sep{ height:1px; width:100%; background:rgba(255,255,255,.10); }
+
+/* Buttons */
+.btn{ border-radius:12px; height:44px; padding:0 16px; font-weight:500; font-size:14px; display:inline-flex; align-items:center; gap:8px; }
+.btn-primary{ background:#fff; color:#000; }
+.btn-secondary{ background:rgba(255,255,255,.10); color:#fff; }
+.btn-ghost{ background:transparent; color:#fff; }
+.btn-sm{ height:36px; padding:0 12px; font-size:13px; }
+
+/* Bars */
+.topbar{
+  position:sticky; top:0; z-index:30;
+  backdrop-filter: blur(8px); background:rgba(0,0,0,.80);
+  border-bottom:1px solid var(--border);
+}
+.tabbar{
+  position:fixed; left:0; right:0; bottom:0; z-index:30;
+  background:rgba(0,0,0,.80); backdrop-filter: blur(8px);
+  border-top:1px solid var(--border);
+}
+.tabgrid{ display:grid; grid-template-columns:repeat(5,1fr); height:64px; padding:0 12px; }
+.tabbtn{ display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; color:rgba(255,255,255,.70); }
+.tabbtn-active{ color:var(--accent); }
+.tabicon{ display:grid; place-items:center; padding:8px; border-radius:10px; }
+.tabicon-active{ background:var(--accent-weak); }
+.tablabel{ font-size:11px; }
+
+/* Page paddings */
+.screen{ padding:16px; padding-bottom:92px; } /* + место под таббар */
+
+/* Ensure SVG size never «раздувается» */
+svg.icon{ width:22px; height:22px; display:inline-block; }
