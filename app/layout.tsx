@@ -1,4 +1,4 @@
-import "./globals.css"; // <-- ВАЖНО: подключает стили
+import "./globals.css";
 
 export const metadata = {
   title: "FMT.JETLAG — mini app",

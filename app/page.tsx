@@ -1,7 +1,18 @@
 "use client";
 import React, { useMemo, useState } from "react";
 
-/** ============ Inline monochrome icons ============ */
+/** =========================================
+ * Types & helpers
+ * ======================================= */
+type Tab = "home" | "missions" | "events" | "market" | "jetlag";
+type StatusLevel = "WHITE" | "RED" | "BLACK";
+type PlanKey = "PLUS" | "PRO" | "STUDIO" | null;
+
+const rank = (s: StatusLevel) => (s === "WHITE" ? 1 : s === "RED" ? 2 : 3);
+
+/** =========================================
+ * Inline monochrome icons
+ * ======================================= */
 const Icon = {
   Home: () => (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -51,12 +62,14 @@ const Icon = {
   ),
 };
 
-/** ===== types & data (…те же, что в предыдущем сообщении) ===== */
-type StatusLevel = "WHITE" | "RED" | "BLACK";
-const rank = (s: StatusLevel) => (s === "WHITE" ? 1 : s === "RED" ? 2 : 3);
-type PlanKey = "PLUS" | "PRO" | "STUDIO" | null;
-
-type Mission = { id: string; brand: string; title: string; deadline: string; tags: string[]; rewards: { jetpoints: number; cash?: string }; minStatus: StatusLevel; requiredPlan: Exclude<PlanKey, null> | null; };
+/** =========================================
+ * Data
+ * ======================================= */
+type Mission = {
+  id: string; brand: string; title: string; deadline: string;
+  tags: string[]; rewards: { jetpoints: number; cash?: string };
+  minStatus: StatusLevel; requiredPlan: Exclude<PlanKey, null> | null;
+};
 type EventItem = { id: string; title: string; date: string; place: string; access: { minStatus: StatusLevel; plan: PlanKey }; price: number; };
 type MarketItem = { id: string; type: "SERVICE" | "PRODUCT"; title: string; price: number; owner: string };
 
@@ -80,48 +93,73 @@ const MARKET: MarketItem[] = [
 ];
 
 const PEOPLE = [
-  { id:"u1", name:"Arseniy", role:"Designer" },
-  { id:"u2", name:"Badri", role:"Producer" },
-  { id:"u3", name:"Daniil", role:"Founder" },
+  { id:"u1", name:"Arseniy", role:"Founder" },
+  { id:"u2", name:"Badri", role:"Gruzin" },
+  { id:"u3", name:"Daniil", role:"Co-owner" },
   { id:"u4", name:"Yana", role:"Artist" },
-  { id:"u5", name:"Kir", role:"Sound" },
+  { id:"u5", name:"Kris", role:"Sound" },
 ];
 
-/** ===== primitives ===== */
+/** =========================================
+ * UI primitives
+ * ======================================= */
 const Chip: React.FC<{children:React.ReactNode}> = ({children}) => <span className="chip">{children}</span>;
 const H2: React.FC<{children:React.ReactNode}> = ({children}) => <div className="h2">{children}</div>;
-const Button: React.FC<{children:React.ReactNode; kind?: "primary"|"secondary"|"ghost"; size?: "s"|"m"; onClick?:()=>void}> = ({children, kind="primary", size="m", onClick}) => {
-  const cls = ["btn", size==="s" ? "btn-s" : "", kind==="secondary" ? "btn-sec" : kind==="ghost" ? "btn-ghost" : ""].join(" ");
+const Button: React.FC<{
+  children: React.ReactNode;
+  kind?: "primary"|"secondary"|"ghost";
+  size?: "s"|"m";
+  className?: string;
+  onClick?: ()=>void;
+}> = ({children, kind="primary", size="m", className, onClick}) => {
+  const cls = [
+    "btn",
+    size==="s" ? "btn-s" : "",
+    kind==="secondary" ? "btn-sec" : kind==="ghost" ? "btn-ghost" : "",
+    className ?? ""
+  ].join(" ").trim();
   return <button className={cls} onClick={onClick}>{children}</button>;
 };
 
-const TopBar: React.FC<{ title: string; onProfile: ()=>void; onSettings: ()=>void; status: StatusLevel; plan: PlanKey; }> = ({title,onProfile,onSettings,status,plan}) => (
+/** =========================================
+ * Top bar (2 строки, как договорились)
+ * ======================================= */
+const TopBar: React.FC<{
+  onProfile: ()=>void;
+  onSettings: ()=>void;
+  status: StatusLevel;
+  plan: PlanKey;
+}> = ({onProfile,onSettings,status,plan}) => (
   <div className="pad-x" style={{position:"sticky", top:0, zIndex:30, backdropFilter:"saturate(180%) blur(14px)", background:"rgba(0,0,0,.55)", borderBottom:"1px solid var(--line)"}}>
     <div className="sp-3" />
+    {/* 1-я строка: FMT.JETLAG слева, иконка настроек справа */}
+    <div className="row-b">
+      <div style={{fontSize:17, fontWeight:600}}>FMT.JETLAG</div>
+      <button className="user-chip" onClick={onSettings} aria-label="Настройки" style={{gap:6}}>
+        <Icon.Settings />
+      </button>
+    </div>
+    <div className="sp-2" />
+    {/* 2-я строка: "Даниил" слева, чипы справа */}
     <div className="row-b">
       <button className="user-chip" onClick={onProfile} aria-label="Профиль">
         <span className="ava" style={{width:24,height:24, borderRadius:8}}><Icon.User /></span>
         Даниил
       </button>
-      <div style={{fontSize:17, fontWeight:600}}>{title}</div>
-      <button className="user-chip" onClick={onSettings} aria-label="Настройки" style={{gap:6}}>
-        <Icon.Settings />
-      </button>
-    </div>
-    <div className="sp-3" />
-    <div className="row-b">
       <div className="chips">
         <div className="chip">{status}</div>
         <div className="chip">{plan ?? "нет плана"}</div>
       </div>
-      <div />
     </div>
     <div className="sp-2" />
   </div>
 );
 
-const BottomNav: React.FC<{tab:string; onChange:(t:string)=>void}> = ({tab,onChange}) => {
-  const Item: React.FC<{k:string; label:string; icon:React.FC}> = ({k,label,icon:IconX}) => {
+/** =========================================
+ * Bottom nav
+ * ======================================= */
+const BottomNav: React.FC<{tab: Tab; onChange: React.Dispatch<React.SetStateAction<Tab>>}> = ({tab,onChange}) => {
+  const Item: React.FC<{k: Tab; label: string; icon: React.FC}> = ({k,label,icon:IconX}) => {
     const active = tab===k;
     return (
       <button className={active?"active":""} onClick={()=>onChange(k)} role="tab" aria-selected={active}>
@@ -143,7 +181,9 @@ const BottomNav: React.FC<{tab:string; onChange:(t:string)=>void}> = ({tab,onCha
   );
 };
 
-/** ===== Screens (как прежде) ===== */
+/** =========================================
+ * Screens
+ * ======================================= */
 const Hero: React.FC = () => (
   <div className="card">
     <div className="card-sec">
@@ -154,16 +194,16 @@ const Hero: React.FC = () => (
   </div>
 );
 
-const HomeScreen: React.FC<{go:(t:string)=>void}> = ({go}) => (
+const HomeScreen: React.FC<{go: React.Dispatch<React.SetStateAction<Tab>>}> = ({go}) => (
   <div className="page pad">
     <Hero />
     <div className="sp-4" />
     <div className="grid-2">
       {[
-        {k:"missions",t:"Миссии",d:"Выбирай задачи"},
-        {k:"events",t:"Афиша",d:"Митапы и турниры"},
-        {k:"market",t:"Маркет",d:"Услуги и товары"},
-        {k:"jetlag",t:"FMT.JETLAG",d:"О нас, видео и продукты"},
+        {k:"missions" as Tab,t:"Миссии",d:"Выбирай задачи"},
+        {k:"events" as Tab,t:"Афиша",d:"Митапы и турниры"},
+        {k:"market" as Tab,t:"Маркет",d:"Услуги и товары"},
+        {k:"jetlag" as Tab,t:"FMT.JETLAG",d:"О нас, видео и продукты"},
       ].map(b=>(
         <div className="card" key={b.k}>
           <div className="card-sec">
@@ -201,7 +241,7 @@ const MissionsScreen: React.FC<{status:StatusLevel; plan:PlanKey;}> = ({status, 
             </div>
             <div className="separator" />
             <div className="card-sec" style={{display:"flex", justifyContent:"flex-end"}}>
-              <Button className="btn-s" size="s">Участвовать</Button>
+              <Button size="s">Участвовать</Button>
             </div>
           </div>
         ))}
@@ -274,7 +314,7 @@ const MarketScreen: React.FC = () => (
   </div>
 );
 
-const JetlagHub: React.FC<{go:(t:string)=>void}> = ({go}) => (
+const JetlagHub: React.FC<{go: React.Dispatch<React.SetStateAction<Tab>>}> = ({go}) => (
   <div className="page pad">
     <div className="card">
       <div className="card-sec">
@@ -305,7 +345,7 @@ const JetlagHub: React.FC<{go:(t:string)=>void}> = ({go}) => (
     <div className="grid-2">
       {[
         {t:"Спорт", d:"Падел клуб и экипировка"},
-        {t:"Waterr", d:"Газированная вода • 0.5 L"},
+        {t:"WATERR", d:"Газированная вода"},
         {t:"Bluora", d:"Косметика и travel наборы"},
         {t:"Одежда", d:"Худи, футболки, аксессуары"},
       ].map((p, i)=>(
@@ -322,7 +362,7 @@ const JetlagHub: React.FC<{go:(t:string)=>void}> = ({go}) => (
 
     <div className="sp-4" />
 
-    <div className="h2">Видео и атмосфера</div>
+    <div className="h2"></div>
     <div className="sp-2" />
     <div className="video">
       <iframe
@@ -371,21 +411,17 @@ const JetlagHub: React.FC<{go:(t:string)=>void}> = ({go}) => (
   </div>
 );
 
-/** ===== Root ===== */
+/** =========================================
+ * Root
+ * ======================================= */
 export default function App() {
-  const [tab, setTab] = useState<"home"|"missions"|"events"|"market"|"jetlag">("jetlag");
+  const [tab, setTab] = useState<Tab>("jetlag");
   const [status] = useState<StatusLevel>("WHITE");
   const [plan] = useState<PlanKey>(null);
-
-  const title = tab==="home" ? "Главная" :
-                tab==="missions" ? "Миссии" :
-                tab==="events" ? "Афиша" :
-                tab==="market" ? "Маркет" : "FMT.JETLAG";
 
   return (
     <>
       <TopBar
-        title={title}
         status={status}
         plan={plan}
         onProfile={()=>setTab("home")}
