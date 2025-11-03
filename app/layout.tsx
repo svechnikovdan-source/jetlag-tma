@@ -1,19 +1,18 @@
+import "./globals.css"; // <-- ВАЖНО: подключает стили
+
 export const metadata = {
   title: "FMT.JETLAG — mini app",
-  description: "Social network where finance meets lifestyle",
-  viewport:
-    "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover",
+  description: "Контент, миссии, афиша и маркет для сообщества.",
+  viewport: "width=device-width, initial-scale=1, maximum-scale=1",
   themeColor: "#0b0b0d",
 };
-
-import "./globals.css";
-import React from "react";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ru">
+      <head />
       <body>
-        <div className="wrapper">{children}</div>
+        <div className="wrap">{children}</div>
       </body>
     </html>
   );

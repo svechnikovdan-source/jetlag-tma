@@ -1,423 +1,404 @@
 "use client";
-
 import React, { useMemo, useState } from "react";
 
-/** --------- SVG icon set (inline, no deps) --------- */
+/** ============ Inline monochrome icons ============ */
 const Icon = {
-  Grid: (p: any) => (
-    <svg viewBox="0 0 24 24" className="tab__icon" {...p}>
-      <path fill="currentColor" d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z" />
+  Home: () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 10.5L12 3l9 7.5" />
+      <path d="M5 9.5V21h14V9.5" />
     </svg>
   ),
-  List: (p: any) => (
-    <svg viewBox="0 0 24 24" className="tab__icon" {...p}>
-      <path fill="currentColor" d="M4 7h16v2H4zM4 15h16v2H4zM4 11h16v2H4z" />
+  List: () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M8 6h12M8 12h12M8 18h12" />
+      <circle cx="4" cy="6" r="1.5" /><circle cx="4" cy="12" r="1.5" /><circle cx="4" cy="18" r="1.5" />
     </svg>
   ),
-  Ticket: (p: any) => (
-    <svg viewBox="0 0 24 24" className="tab__icon" {...p}>
-      <path fill="currentColor" d="M3 7h18v4a2 2 0 0 1 0 2v4H3v-4a2 2 0 0 1 0-2V7z" />
+  Ticket: () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 8h16v3a2 2 0 0 1 0 4v3H4v-3a2 2 0 0 1 0-4V8z" />
+      <path d="M12 8v8" />
     </svg>
   ),
-  Store: (p: any) => (
-    <svg viewBox="0 0 24 24" className="tab__icon" {...p}>
-      <path fill="currentColor" d="M4 10h16l-1-4H5l-1 4zm2 2h12v8H6v-8z" />
+  Bag: () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M6 7h12l1 3v9H5V10l1-3z" />
+      <path d="M9 7V6a3 3 0 0 1 6 0v1" />
     </svg>
   ),
-  Brand: (p: any) => (
-    <svg viewBox="0 0 24 24" className="tab__icon" {...p}>
-      <rect x="10.5" y="6.5" width="3" height="3" fill="currentColor" />
-      <rect x="10.5" y="14.5" width="3" height="3" fill="currentColor" />
+  Brand: () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+      <rect x="7" y="4" width="4" height="4" rx="1" /><rect x="13" y="4" width="4" height="4" rx="1" />
+      <rect x="7" y="10" width="4" height="4" rx="1" /><rect x="13" y="10" width="4" height="4" rx="1" />
     </svg>
   ),
-  User: (p: any) => (
-    <svg viewBox="0 0 24 24" width="18" height="18" {...p}>
-      <path fill="currentColor" d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4zm-8 8a8 8 0 0 1 16 0H4z" />
+  User: () => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="7.5" r="3.5" /><path d="M4 20a8 8 0 0 1 16 0" />
     </svg>
   ),
-  Temple: (p: any) => (
-    <svg viewBox="0 0 24 24" width="18" height="18" {...p}>
-      <path fill="currentColor" d="M12 5l8 3v3H4V8l8-3zM6 12v7h2v-7H6zm5 0v7h2v-7h-2zm5 0v7h2v-7h-2z" />
+  Settings: () => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="3" />
+      <path d="M19.4 15a1.6 1.6 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.6 1.6 0 0 0-1.82-.33A1.6 1.6 0 0 0 14 21a2 2 0 0 1-4 0 1.6 1.6 0 0 0-1-1.51 1.6 1.6 0 0 0-1.82.33l-.06.06A2 2 0 1 1 4.29 17.9l.06-.06A1.6 1.6 0 0 0 4 16.02 1.6 1.6 0 0 0 2.49 15H3a2 2 0 0 1 0-4h.09c.67 0 1.27-.39 1.51-1a1.6 1.6 0 0 0-.33-1.82l-.06-.06A2 2 0 1 1 7.04 4.29l.06.06c.5.5 1.2.66 1.82.33A1.6 1.6 0 0 0 10 3a2 2 0 0 1 4 0 1.6 1.6 0 0 0 1.08 1.6c.62.33 1.32.17 1.82-.33l.06-.06A2 2 0 1 1 21 7.04l-.06.06c-.5.5-.66 1.2-.33 1.82.24.61.84 1 1.51 1H21a2 2 0 0 1 0 4h-.09a1.6 1.6 0 0 0-1.51 1z" />
     </svg>
   ),
-  Gear: (p: any) => (
-    <svg viewBox="0 0 24 24" width="18" height="18" {...p}>
-      <path
-        fill="currentColor"
-        d="M12 8a4 4 0 104 4 4 4 0 00-4-4zm8.94 3a7.8 7.8 0 00-.5-1.9l2.06-1.6-2-3.46-2.43 1a8.5 8.5 0 00-1.64-.95l-.37-2.6H8l-.37 2.6a8.5 8.5 0 00-1.64.95l-2.43-1-2 3.46 2.06 1.6a7.8 7.8 0 00-.5 1.9l-2.56.4v4.01l2.56.4a7.8 7.8 0 00.5 1.9l-2.06 1.6 2 3.46 2.43-1c.52.38 1.07.7 1.64.95l.37 2.6h8l.37-2.6c.57-.25 1.12-.57 1.64-.95l2.43 1 2-3.46-2.06-1.6c.22-.6.38-1.24.5-1.9l2.56-.4V11z"
-      />
+  Temple: () => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 10l9-5 9 5" /><path d="M4 10v8M8 10v8M12 10v8M16 10v8M20 10v8M2 18h20" />
     </svg>
   ),
 };
 
-/** --------- Data (static demo) --------- */
+/** ===== types & data (…те же, что в предыдущем сообщении) ===== */
 type StatusLevel = "WHITE" | "RED" | "BLACK";
-const rankValue = (x: StatusLevel) => (x === "WHITE" ? 1 : x === "RED" ? 2 : 3);
+const rank = (s: StatusLevel) => (s === "WHITE" ? 1 : s === "RED" ? 2 : 3);
+type PlanKey = "PLUS" | "PRO" | "STUDIO" | null;
 
-const MISSIONS = [
-  {
-    id: "m1",
-    brand: "FMT.JETLAG",
-    title: "Рефреш айдентики для FMT.JETLAG Padel",
-    deadline: "14.11.2025",
-    tags: ["design", "branding"],
-    rewards: { jp: 250, cash: "50 000 ₽" },
-    minStatus: "WHITE" as StatusLevel,
-  },
-  {
-    id: "m2",
-    brand: "Bluora",
-    title: "UGC-кампания: Travel-skin ритуалы",
-    deadline: "21.11.2025",
-    tags: ["video", "ugc"],
-    rewards: { jp: 150, cash: "по результату" },
-    minStatus: "WHITE" as StatusLevel,
-  },
+type Mission = { id: string; brand: string; title: string; deadline: string; tags: string[]; rewards: { jetpoints: number; cash?: string }; minStatus: StatusLevel; requiredPlan: Exclude<PlanKey, null> | null; };
+type EventItem = { id: string; title: string; date: string; place: string; access: { minStatus: StatusLevel; plan: PlanKey }; price: number; };
+type MarketItem = { id: string; type: "SERVICE" | "PRODUCT"; title: string; price: number; owner: string };
+
+const MISSIONS: Mission[] = [
+  { id: "m1", brand: "FMT.JETLAG", title: "Рефреш айдентики для FMT.JETLAG Padel", deadline: "14.11.2025", tags: ["design","branding"], rewards: { jetpoints: 250, cash: "50 000 ₽" }, minStatus:"WHITE", requiredPlan: null },
+  { id: "m2", brand: "Bluora", title: "UGC-кампания: Travel-skin ритуалы", deadline: "21.11.2025", tags: ["video","ugc"], rewards: { jetpoints: 150, cash: "по результату" }, minStatus:"WHITE", requiredPlan:"PLUS" },
+  { id: "m3", brand: "Viperr Waterr", title: "Съёмка рекламного спота (Twitch)", deadline: "05.12.2025", tags: ["video","production"], rewards: { jetpoints: 500, cash: "120 000 ₽" }, minStatus:"RED", requiredPlan:"PRO" },
+  { id: "m4", brand: "FMT.JETLAG Film", title: "Motion-пак для стрима-фильма", deadline: "30.11.2025", tags: ["motion","gfx"], rewards: { jetpoints: 400, cash: "дог." }, minStatus:"RED", requiredPlan: null },
 ];
 
-const EVENTS = [
-  { id: "e1", title: "Creator Meetup: Music x AI", date: "16.11.2025", place: "Москва, Jet-Space", price: 0, min: "WHITE" as StatusLevel },
-  { id: "e2", title: "Padel Night Tournament", date: "22.11.2025", place: "FMT.JETLAG Padel", price: 1500, min: "RED" as StatusLevel },
+const EVENTS: EventItem[] = [
+  { id: "e1", title: "Creator Meetup: Music x AI", date: "16.11.2025", place: "Москва, Jet-Space", access: { minStatus: "WHITE", plan: null }, price: 0 },
+  { id: "e2", title: "FMT.JETLAG Padel Night Tournament", date: "22.11.2025", place: "FMT.JETLAG Padel", access: { minStatus: "RED", plan: "PLUS" }, price: 1500 },
+  { id: "e3", title: "Studio Session (Video Backstage)", date: "29.11.2025", place: "Jet Studio", access: { minStatus: "RED", plan: "STUDIO" }, price: 0 },
 ];
 
-const MARKET = [
+const MARKET: MarketItem[] = [
   { id: "i1", type: "SERVICE", title: "Сведение и мастеринг трека", price: 8000, owner: "@audio.kir" },
-  { id: "i2", type: "PRODUCT", title: "Bluora Travel Kit v2", price: 2490, owner: "@bluora" },
+  { id: "i2", type: "SERVICE", title: "Motion-дизайн (30-сек ролик)", price: 15000, owner: "@gfx.storm" },
+  { id: "i3", type: "PRODUCT", title: "Bluora Travel Kit v2", price: 2490, owner: "@bluora" },
 ];
 
-/** --------- Small UI primitives --------- */
-const Chip: React.FC<React.PropsWithChildren<{ className?: string }>> = ({ children, className }) => (
-  <span className={`btn btn--chip ${className || ""}`}>{children}</span>
-);
+const PEOPLE = [
+  { id:"u1", name:"Arseniy", role:"Designer" },
+  { id:"u2", name:"Badri", role:"Producer" },
+  { id:"u3", name:"Daniil", role:"Founder" },
+  { id:"u4", name:"Yana", role:"Artist" },
+  { id:"u5", name:"Kir", role:"Sound" },
+];
 
-const Button: React.FC<
-  React.PropsWithChildren<{ variant?: "primary" | "secondary" | "ghost"; onClick?: () => void; className?: string }>
-> = ({ children, variant = "primary", onClick, className }) => {
-  const cls = variant === "secondary" ? "btn btn--secondary" : variant === "ghost" ? "btn btn--ghost" : "btn";
-  return (
-    <button type="button" className={`${cls} ${className || ""}`} onClick={onClick}>
-      {children}
-    </button>
-  );
+/** ===== primitives ===== */
+const Chip: React.FC<{children:React.ReactNode}> = ({children}) => <span className="chip">{children}</span>;
+const H2: React.FC<{children:React.ReactNode}> = ({children}) => <div className="h2">{children}</div>;
+const Button: React.FC<{children:React.ReactNode; kind?: "primary"|"secondary"|"ghost"; size?: "s"|"m"; onClick?:()=>void}> = ({children, kind="primary", size="m", onClick}) => {
+  const cls = ["btn", size==="s" ? "btn-s" : "", kind==="secondary" ? "btn-sec" : kind==="ghost" ? "btn-ghost" : ""].join(" ");
+  return <button className={cls} onClick={onClick}>{children}</button>;
 };
 
-const Card: React.FC<React.PropsWithChildren<{ className?: string }>> = ({ children, className }) => (
-  <div className={`card ${className || ""}`}>{children}</div>
+const TopBar: React.FC<{ title: string; onProfile: ()=>void; onSettings: ()=>void; status: StatusLevel; plan: PlanKey; }> = ({title,onProfile,onSettings,status,plan}) => (
+  <div className="pad-x" style={{position:"sticky", top:0, zIndex:30, backdropFilter:"saturate(180%) blur(14px)", background:"rgba(0,0,0,.55)", borderBottom:"1px solid var(--line)"}}>
+    <div className="sp-3" />
+    <div className="row-b">
+      <button className="user-chip" onClick={onProfile} aria-label="Профиль">
+        <span className="ava" style={{width:24,height:24, borderRadius:8}}><Icon.User /></span>
+        Даниил
+      </button>
+      <div style={{fontSize:17, fontWeight:600}}>{title}</div>
+      <button className="user-chip" onClick={onSettings} aria-label="Настройки" style={{gap:6}}>
+        <Icon.Settings />
+      </button>
+    </div>
+    <div className="sp-3" />
+    <div className="row-b">
+      <div className="chips">
+        <div className="chip">{status}</div>
+        <div className="chip">{plan ?? "нет плана"}</div>
+      </div>
+      <div />
+    </div>
+    <div className="sp-2" />
+  </div>
 );
 
-/** --------- Screens --------- */
-
-function TopBar({ title, onManor, onSettings }: { title: string; onManor: () => void; onSettings: () => void }) {
-  return (
-    <div className="topbar">
-      <div className="topbar__row container" style={{ padding: 0 }}>
-        <div className="topbar__brand">
-          <Icon.Grid /> <span>FMT.JETLAG</span>
-        </div>
-        <div className="topbar__title">{title}</div>
-        <div className="topbar__actions">
-          <Button variant="secondary" className="btn--chip" onClick={onManor}>
-            <Icon.Temple /> Усадьба
-          </Button>
-          <Button variant="secondary" className="btn--chip" onClick={onSettings}>
-            <Icon.Gear /> Настройки
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function BottomNav({
-  tab,
-  onChange,
-}: {
-  tab: string;
-  onChange: (key: "home" | "missions" | "events" | "market" | "jetlag") => void;
-}) {
-  const items = useMemo(
-    () => [
-      { key: "home", label: "Главная", icon: Icon.Grid },
-      { key: "missions", label: "Миссии", icon: Icon.List },
-      { key: "events", label: "Афиша", icon: Icon.Ticket },
-      { key: "market", label: "Маркет", icon: Icon.Store },
-      { key: "jetlag", label: "FMT.JETLAG", icon: Icon.Brand },
-    ],
-    []
-  );
+const BottomNav: React.FC<{tab:string; onChange:(t:string)=>void}> = ({tab,onChange}) => {
+  const Item: React.FC<{k:string; label:string; icon:React.FC}> = ({k,label,icon:IconX}) => {
+    const active = tab===k;
+    return (
+      <button className={active?"active":""} onClick={()=>onChange(k)} role="tab" aria-selected={active}>
+        <span className="ic"><IconX/></span>
+        <span>{label}</span>
+      </button>
+    );
+  };
   return (
     <nav className="bottom">
-      <div className="bottom__wrap">
-        <div className="tabs">
-          {items.map(({ key, label, icon: Ico }) => {
-            const active = key === tab;
-            return (
-              <button
-                key={key}
-                className={`tab ${active ? "tab--active" : ""}`}
-                onClick={() => onChange(key as any)}
-                aria-label={label}
-              >
-                <Ico />
-                <span style={{ fontSize: 11, lineHeight: "12px" }}>{label}</span>
-              </button>
-            );
-          })}
-        </div>
+      <div className="bn">
+        <Item k="home" label="Главная" icon={Icon.Home}/>
+        <Item k="missions" label="Миссии" icon={Icon.List}/>
+        <Item k="events" label="Афиша" icon={Icon.Ticket}/>
+        <Item k="market" label="Маркет" icon={Icon.Bag}/>
+        <Item k="jetlag" label="FMT.JETLAG" icon={Icon.Brand}/>
       </div>
     </nav>
   );
-}
+};
 
-/** Blocks used on multiple screens */
-function ProductGrid() {
-  const products = [
-    { id: "p1", title: "Спорт", sub: "Падел клуб и экипировка" },
-    { id: "p2", title: "Waterr", sub: "Газированная вода • 0.5 L" },
-    { id: "p3", title: "Bluora", sub: "Косметика и travel наборы" },
-    { id: "p4", title: "Одежда", sub: "Худи, футболки, аксессуары" },
-  ];
-  return (
-    <div className="grid grid-2">
-      {products.map((p) => (
-        <Card key={p.id}>
-          <div className="pcard">
-            <div className="pcard__title">{p.title}</div>
-            <div className="pcard__sub">{p.sub}</div>
-            <div style={{ marginTop: 10 }}>
-              <Button variant="secondary">Подробнее</Button>
+/** ===== Screens (как прежде) ===== */
+const Hero: React.FC = () => (
+  <div className="card">
+    <div className="card-sec">
+      <div className="t-caption">О нас</div>
+      <div className="sp-2" />
+      <div className="h2" style={{fontSize:18}}>Empowering talents to<br/>bring value through content</div>
+    </div>
+  </div>
+);
+
+const HomeScreen: React.FC<{go:(t:string)=>void}> = ({go}) => (
+  <div className="page pad">
+    <Hero />
+    <div className="sp-4" />
+    <div className="grid-2">
+      {[
+        {k:"missions",t:"Миссии",d:"Выбирай задачи"},
+        {k:"events",t:"Афиша",d:"Митапы и турниры"},
+        {k:"market",t:"Маркет",d:"Услуги и товары"},
+        {k:"jetlag",t:"FMT.JETLAG",d:"О нас, видео и продукты"},
+      ].map(b=>(
+        <div className="card" key={b.k}>
+          <div className="card-sec">
+            <div className="row-b">
+              <div className="h2">{b.t}</div>
+              <Button kind="ghost" size="s" onClick={()=>go(b.k)} >Открыть</Button>
             </div>
+            <div className="t-caption" style={{marginTop:6}}>{b.d}</div>
           </div>
-        </Card>
+        </div>
       ))}
     </div>
-  );
-}
+  </div>
+);
 
-function VideoBlock() {
-  // Нативный iframe; автозапуск (mute+playsinline). В TWA это работает после первого взаимодействия.
-  const src =
-    "https://www.youtube-nocookie.com/embed/-yPMtwa8f14?autoplay=1&mute=1&playsinline=1&rel=0&modestbranding=1&controls=0";
+const MissionsScreen: React.FC<{status:StatusLevel; plan:PlanKey;}> = ({status, plan}) => {
+  const filtered = useMemo(()=>MISSIONS.filter(m=> rank(status) >= rank(m.minStatus) && (!m.requiredPlan || plan===m.requiredPlan)),[status,plan]);
   return (
-    <Card>
-      <div className="section">
-        <div className="h2" style={{ marginBottom: 8 }}>
-          Видео и атмосфера
-        </div>
-        <div className="media">
-          <iframe
-            src={src}
-            title="FMT.JETLAG video"
-            allow="autoplay; encrypted-media; picture-in-picture"
-            loading="lazy"
-            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: 0 }}
-          />
-        </div>
-        <div className="row" style={{ marginTop: 10 }}>
-          <span className="caption">Автовоспроизведение включено (mute)</span>
-          <Button variant="secondary" onClick={() => window.open(`https://youtu.be/-yPMtwa8f14`, "_blank")}>
-            Смотреть
-          </Button>
-        </div>
-      </div>
-    </Card>
-  );
-}
-
-/** Screens */
-function Home({ go }: { go: (t: any) => void }) {
-  return (
-    <div className="grid">
-      <Card>
-        <div className="section" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div>
-            <div className="caption">FMT.JETLAG Pulse</div>
-            <div className="h2" style={{ marginTop: 4 }}>
-              Идеи становятся делом
+    <div className="page pad">
+      <div className="h2">Миссии</div>
+      <div className="sp-3" />
+      <div className="list">
+        {filtered.map(m=>(
+          <div className="card" key={m.id}>
+            <div className="card-sec">
+              <div className="row-b">
+                <div className="h2" style={{fontSize:15}}>{m.title}</div>
+                <div className="chip">{m.brand}</div>
+              </div>
+              <div className="sp-2" />
+              <div className="t-body">Дедлайн: {m.deadline}</div>
+              <div className="t-body">Теги: {m.tags.join(", ")}</div>
+              <div className="t-body">Награды: {m.rewards.jetpoints} JP{m.rewards.cash?` + ${m.rewards.cash}`:""}</div>
+              <div className="t-caption" style={{marginTop:6}}>Доступ: статус {m.minStatus}{m.requiredPlan?` + план ${m.requiredPlan}`:""}</div>
             </div>
-            <div className="body" style={{ marginTop: 4 }}>
-              Забирай миссии, собирай JetPoints, расти в статусе.
+            <div className="separator" />
+            <div className="card-sec" style={{display:"flex", justifyContent:"flex-end"}}>
+              <Button className="btn-s" size="s">Участвовать</Button>
             </div>
           </div>
-          <Icon.Brand />
-        </div>
-      </Card>
-
-      <div className="grid grid-2">
-        <Card>
-          <div className="section">
-            <div className="h2">Миссии</div>
-            <div className="body" style={{ marginTop: 6 }}>
-              Задачи от брендов и комьюнити
-            </div>
-            <div style={{ marginTop: 10 }}>
-              <Button variant="secondary" onClick={() => go("missions")}>
-                Открыть
-              </Button>
+        ))}
+        {filtered.length===0 && (
+          <div className="card">
+            <div className="card-sec">
+              <div className="h2">Пока нет доступных миссий</div>
+              <div className="t-body" style={{marginTop:6}}>Подключи план или повышай статус, чтобы открыть больше возможностей.</div>
             </div>
           </div>
-        </Card>
-        <Card>
-          <div className="section">
-            <div className="h2">Афиша</div>
-            <div className="body" style={{ marginTop: 6 }}>
-              Митапы, турниры и сессии
-            </div>
-            <div style={{ marginTop: 10 }}>
-              <Button variant="secondary" onClick={() => go("events")}>
-                Открыть
-              </Button>
-            </div>
-          </div>
-        </Card>
+        )}
       </div>
     </div>
   );
-}
+};
 
-function Missions() {
+const EventsScreen: React.FC<{status:StatusLevel; plan:PlanKey;}> = ({status, plan}) => {
+  const items = EVENTS.filter(e=> rank(status)>=rank(e.access.minStatus) && (!e.access.plan || plan===e.access.plan));
   return (
-    <div className="grid">
-      <div className="row" style={{ alignItems: "baseline" }}>
-        <div className="h2">Миссии</div>
-        <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
-          <Chip>Статус: WHITE</Chip>
-          <Chip>План: нет</Chip>
-        </div>
-      </div>
-      {MISSIONS.map((m) => (
-        <Card key={m.id}>
-          <div className="section">
-            <div className="row">
-              <div className="h2" style={{ fontSize: 15 }}>{m.title}</div>
-              <Chip>{m.brand}</Chip>
-            </div>
-            <div className="body" style={{ marginTop: 6 }}>
-              Дедлайн: {m.deadline}
-            </div>
-            <div className="body">Теги: {m.tags.join(", ")}</div>
-            <div className="body">Награды: {m.rewards.jp} JP{m.rewards.cash ? ` + ${m.rewards.cash}` : ""}</div>
-            <div className="row" style={{ marginTop: 10, justifyContent: "flex-end", gap: 8 }}>
-              <Button variant="secondary">Подробнее</Button>
-              <Button>Участвовать</Button>
-            </div>
-          </div>
-        </Card>
-      ))}
-    </div>
-  );
-}
-
-function Events() {
-  const status: StatusLevel = "WHITE";
-  return (
-    <div className="grid">
+    <div className="page pad">
       <div className="h2">Афиша</div>
-      {EVENTS.filter((e) => rankValue(status) >= rankValue(e.min)).map((e) => (
-        <Card key={e.id}>
-          <div className="section">
-            <div className="h2" style={{ fontSize: 15 }}>{e.title}</div>
-            <div className="body" style={{ marginTop: 4 }}>
-              {e.date} — {e.place}
+      <div className="sp-3" />
+      <div className="list">
+        {items.map(e=>(
+          <div className="card" key={e.id}>
+            <div className="card-sec">
+              <div className="h2" style={{fontSize:15}}>{e.title}</div>
+              <div className="t-body" style={{marginTop:4}}>{e.date} — {e.place}</div>
+              <div className="t-caption" style={{marginTop:4}}>Цена: {e.price ? `${e.price} ₽` : "бесплатно"}</div>
             </div>
-            <div className="body">{e.price ? `${e.price} ₽` : "бесплатно"}</div>
-            <div className="row" style={{ marginTop: 10, justifyContent: "flex-end", gap: 8 }}>
-              <Button variant="secondary">Получить QR</Button>
-              <Button>RSVP</Button>
+            <div className="separator" />
+            <div className="card-sec row-b">
+              <Button kind="secondary" size="s">Получить QR</Button>
+              <div className="row" style={{gap:8}}>
+                <Button kind="ghost" size="s">Подробнее</Button>
+                <Button size="s">RSVP</Button>
+              </div>
             </div>
           </div>
-        </Card>
-      ))}
-    </div>
-  );
-}
-
-function Market() {
-  return (
-    <div className="grid">
-      <div className="row">
-        <div className="h2">Маркет</div>
-        <div style={{ marginLeft: "auto" }}>
-          <Button variant="secondary">Опубликовать</Button>
-        </div>
+        ))}
       </div>
-      {MARKET.map((it) => (
-        <Card key={it.id}>
-          <div className="section">
-            <div className="h2" style={{ fontSize: 15 }}>{it.title}</div>
-            <div className="body">{it.type}</div>
-            <div className="body">Цена: {it.price} ₽</div>
-            <div className="body">Владелец: {it.owner}</div>
-            <div className="row" style={{ marginTop: 10, justifyContent: "flex-end", gap: 8 }}>
-              <Button variant="secondary">Подробнее</Button>
-              <Button variant="secondary">Связаться</Button>
-            </div>
-          </div>
-        </Card>
-      ))}
     </div>
   );
-}
+};
 
-function FmtJetlag({ goManor }: { goManor: () => void }) {
-  return (
-    <div className="grid">
-      <Card>
-        <div className="section">
-          <div className="caption">О нас</div>
-          <div className="h2" style={{ marginTop: 6 }}>
-            Empowering talents to<br />bring value through content
+const MarketScreen: React.FC = () => (
+  <div className="page pad">
+    <div className="row-b">
+      <div className="h2">Маркет</div>
+      <Button kind="secondary" size="s">Опубликовать</Button>
+    </div>
+    <div className="sp-3" />
+    <div className="list">
+      {MARKET.map(it=>(
+        <div className="card" key={it.id}>
+          <div className="card-sec">
+            <div className="h2" style={{fontSize:15}}>{it.title}</div>
+            <div className="t-caption" style={{marginTop:4}}>{it.type}</div>
+            <div className="t-body" style={{marginTop:2}}>Цена: {it.price} ₽</div>
+            <div className="t-body">Владелец: {it.owner}</div>
+          </div>
+          <div className="separator" />
+          <div className="card-sec row-b">
+            <Button kind="secondary" size="s">Подробнее</Button>
+            <Button kind="secondary" size="s">Связаться</Button>
           </div>
         </div>
-      </Card>
+      ))}
+    </div>
+  </div>
+);
 
-      <Card>
-        <div className="section">
+const JetlagHub: React.FC<{go:(t:string)=>void}> = ({go}) => (
+  <div className="page pad">
+    <div className="card">
+      <div className="card-sec">
+        <div className="t-caption">О нас</div>
+        <div className="sp-2" />
+        <div className="h2" style={{fontSize:18}}>Empowering talents to<br/>bring value through content</div>
+      </div>
+    </div>
+
+    <div className="sp-4" />
+
+    <div className="card">
+      <div className="card-sec">
+        <div className="row-b">
           <div className="row">
-            <div className="h2" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <Icon.Temple /> Усадьба JETLAG
-            </div>
-            <Button variant="secondary" onClick={goManor}>
-              Открыть 3D-тур
-            </Button>
+            <span className="ava" style={{width:28,height:28, borderRadius:8}}><Icon.Temple /></span>
+            <div className="h2">Усадьба JETLAG</div>
           </div>
-          <div className="body" style={{ marginTop: 6 }}>
-            Кампус для резиденций, съёмок и встреч сообщества.
+          <Button kind="secondary" size="s">Открыть 3D-тур</Button>
+        </div>
+        <div className="t-body" style={{marginTop:6}}>Кампус для резиденций, съёмок и встреч сообщества.</div>
+      </div>
+    </div>
+
+    <div className="sp-4" />
+
+    <div className="h2" style={{marginBottom:8}}>JETLAG продукты</div>
+    <div className="grid-2">
+      {[
+        {t:"Спорт", d:"Падел клуб и экипировка"},
+        {t:"Waterr", d:"Газированная вода • 0.5 L"},
+        {t:"Bluora", d:"Косметика и travel наборы"},
+        {t:"Одежда", d:"Худи, футболки, аксессуары"},
+      ].map((p, i)=>(
+        <div className="card" key={i}>
+          <div className="card-sec">
+            <div className="h2">{p.t}</div>
+            <div className="t-body" style={{marginTop:4}}>{p.d}</div>
+            <div className="sp-3" />
+            <Button kind="secondary" size="s">Подробнее</Button>
           </div>
         </div>
-      </Card>
-
-      <div>
-        <div className="h2" style={{ marginBottom: 8 }}>JETLAG продукты</div>
-        <ProductGrid />
-      </div>
-
-      <VideoBlock />
+      ))}
     </div>
-  );
-}
 
-/** --------- Root Page --------- */
-export default function Page() {
-  const [tab, setTab] = useState<"home" | "missions" | "events" | "market" | "jetlag">("jetlag");
-  const title =
-    tab === "home" ? "Главная" : tab === "missions" ? "Миссии" : tab === "events" ? "Афиша" : tab === "market" ? "Маркет" : "FMT.JETLAG";
+    <div className="sp-4" />
+
+    <div className="h2">Видео и атмосфера</div>
+    <div className="sp-2" />
+    <div className="video">
+      <iframe
+        src="https://www.youtube-nocookie.com/embed/-yPMtwa8f14?autoplay=1&mute=1&playsinline=1&controls=1&rel=0&modestbranding=1"
+        allow="autoplay; encrypted-media; picture-in-picture"
+        title="FMT.JETLAG"
+      />
+    </div>
+
+    <div className="sp-4" />
+
+    <div className="h2">Амбассадоры</div>
+    <div className="sp-2" />
+    <div className="scroller">
+      <div className="rowx">
+        {PEOPLE.map(p=>{
+          const init = p.name.split(" ").map(s=>s[0]).join("").slice(0,2).toUpperCase();
+          return (
+            <div className="amb" key={p.id}>
+              <div className="row" style={{gap:10}}>
+                <div className="ava">{init}</div>
+                <div>
+                  <div className="h2" style={{fontSize:13}}>{p.name}</div>
+                  <div className="t-caption" style={{marginTop:2}}>{p.role}</div>
+                </div>
+              </div>
+              <div className="t-caption" style={{marginTop:10}}>создаём культуру вместе</div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+
+    <div className="sp-4" />
+
+    <div className="card">
+      <div className="card-sec">
+        <div className="h2" style={{marginBottom:8}}>Новости и релизы</div>
+        <div className="list">
+          <div className="card" style={{background:"rgba(255,255,255,.05)"}}><div className="card-sec">Viperr Waterr — новая банка • 12/2025</div></div>
+          <div className="card" style={{background:"rgba(255,255,255,.05)"}}><div className="card-sec">Bluora Travel Kit v2 — обновили формулы и упаковку</div></div>
+          <div className="card" style={{background:"rgba(255,255,255,.05)"}}><div className="card-sec">Night Tournament — регистрация открыта</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+/** ===== Root ===== */
+export default function App() {
+  const [tab, setTab] = useState<"home"|"missions"|"events"|"market"|"jetlag">("jetlag");
+  const [status] = useState<StatusLevel>("WHITE");
+  const [plan] = useState<PlanKey>(null);
+
+  const title = tab==="home" ? "Главная" :
+                tab==="missions" ? "Миссии" :
+                tab==="events" ? "Афиша" :
+                tab==="market" ? "Маркет" : "FMT.JETLAG";
 
   return (
     <>
       <TopBar
         title={title}
-        onManor={() => alert("Открываю 3D-тур (демо)")}
-        onSettings={() => alert("Откроем настройки позже")}
+        status={status}
+        plan={plan}
+        onProfile={()=>setTab("home")}
+        onSettings={()=>alert("Настройки (демо)")}
       />
-      <main className="container" style={{ paddingTop: 16 }}>
-        {tab === "home" && <Home go={(t) => setTab(t)} />}
-        {tab === "missions" && <Missions />}
-        {tab === "events" && <Events />}
-        {tab === "market" && <Market />}
-        {tab === "jetlag" && <FmtJetlag goManor={() => alert("Открываю 3D-тур (демо)")} />}
-      </main>
-      <BottomNav tab={tab} onChange={setTab} />
+
+      {tab==="home" && <HomeScreen go={setTab} />}
+      {tab==="missions" && <MissionsScreen status={status} plan={plan} />}
+      {tab==="events" && <EventsScreen status={status} plan={plan} />}
+      {tab==="market" && <MarketScreen/>}
+      {tab==="jetlag" && <JetlagHub go={setTab} />}
+
+      <BottomNav tab={tab} onChange={setTab}/>
     </>
   );
 }
