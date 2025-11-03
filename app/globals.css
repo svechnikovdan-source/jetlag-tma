@@ -2,17 +2,20 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Базовая типографика и сглаживание */
 :root { color-scheme: dark; }
-html, body { height: 100%; }
-body {
-  @apply bg-[#0b0b0d] text-white antialiased;
-  font-feature-settings: "liga" 1, "kern" 1;
+
+html, body {
+  padding: 0;
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
+  background-color: black;
+  color: white;
+  height: 100%;
 }
 
-/* Мягкий fade-in для экранов */
-@keyframes fadeIn { from { opacity: 0; transform: translateY(6px) } to { opacity: 1; transform: none } }
-.anim-fade-in { animation: fadeIn .2s ease-out both; }
+* { box-sizing: border-box; }
 
-/* Единый размер иконок по умолчанию */
-svg.icon { width: 20px; height: 20px; stroke-width: 1.6; }
+button {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
