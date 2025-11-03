@@ -2,64 +2,69 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ===== Theme ===== */
+/* ====== Design tokens ====== */
 :root{
-  --bg: #0b0b0d;
-  --surface: #111113;
-  --border: #242428;
-  --text: #ffffff;
-  --muted: rgba(255,255,255,.80);
-  --muted2: rgba(255,255,255,.60);
-  --accent: #FF2D55;
-  --accent-weak: rgba(255,45,85,.15);
+  --bg:#0b0b0d;
+  --card:#111113;
+  --border:#242428;
+  --text:#ffffff;
+  --text-70:rgba(255,255,255,.7);
+  --text-60:rgba(255,255,255,.6);
+  --brand:#FF2D55; /* активный цвет навигации */
+  --radius:16px;
+
+  /* типографика */
+  --fz-11:11px;
+  --fz-12:12px;
+  --fz-13:13px;
+  --fz-14:14px;
+  --fz-16:16px;
+  --fz-18:18px;
 }
 
-*{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-html,body{ height:100%; }
-html{ color-scheme:dark; }
+html,body{height:100%;}
 body{
-  margin:0; background:var(--bg); color:var(--text);
-  font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI",
-    Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+  background:var(--bg);
+  color:var(--text);
+  -webkit-font-smoothing:antialiased;
+  font-feature-settings:"liga","kern";
 }
 
-/* Typography */
-.h2{ font-size:16px; font-weight:600; letter-spacing:-0.01em; }
-.body{ font-size:13px; color:var(--muted); }
-.caption{ font-size:11px; color:var(--muted2); }
+/* контейнер и карточки */
+.app-wrap{min-height:100dvh; display:flex; flex-direction:column;}
+.app-main{flex:1; padding-bottom:calc(66px + env(safe-area-inset-bottom));}
+.card{background:var(--card); border:1px solid var(--border); border-radius:var(--radius);}
+.card-pad{padding:16px;}
+.hr{height:1px; background:rgba(255,255,255,.08);}
 
-/* Cards & sections */
-.card{ background:var(--surface); border:1px solid var(--border); border-radius:16px; overflow:hidden; }
-.section{ padding:16px; }
-.sep{ height:1px; width:100%; background:rgba(255,255,255,.10); }
+/* заголовки */
+.h2{font-weight:600; font-size:var(--fz-16); line-height:1.25;}
+.p{font-size:var(--fz-13); color:var(--text-70);}
 
-/* Buttons */
-.btn{ border-radius:12px; height:44px; padding:0 16px; font-weight:500; font-size:14px; display:inline-flex; align-items:center; gap:8px; }
-.btn-primary{ background:#fff; color:#000; }
-.btn-secondary{ background:rgba(255,255,255,.10); color:#fff; }
-.btn-ghost{ background:transparent; color:#fff; }
-.btn-sm{ height:36px; padding:0 12px; font-size:13px; }
-
-/* Bars */
-.topbar{
-  position:sticky; top:0; z-index:30;
-  backdrop-filter: blur(8px); background:rgba(0,0,0,.80);
-  border-bottom:1px solid var(--border);
+/* кнопки */
+.btn{
+  display:inline-flex; align-items:center; justify-content:center;
+  height:40px; padding:0 14px; border-radius:12px; font-size:var(--fz-13);
+  transition:.15s ease;
 }
-.tabbar{
-  position:fixed; left:0; right:0; bottom:0; z-index:30;
-  background:rgba(0,0,0,.80); backdrop-filter: blur(8px);
+.btn:active{transform:scale(.98)}
+.btn-primary{background:#fff; color:#000;}
+.btn-secondary{background:rgba(255,255,255,.08); color:#fff; border:1px solid rgba(255,255,255,.12)}
+.btn-ghost{background:transparent; color:#fff}
+
+/* ====== Bottom Nav (меньше расстояние иконка/текст) ====== */
+.navbar{
+  position:fixed; left:0; right:0; bottom:0; z-index:20;
+  background:rgba(0,0,0,.82); backdrop-filter:saturate(140%) blur(12px);
   border-top:1px solid var(--border);
+  padding-bottom:env(safe-area-inset-bottom);
 }
-.tabgrid{ display:grid; grid-template-columns:repeat(5,1fr); height:64px; padding:0 12px; }
-.tabbtn{ display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; color:rgba(255,255,255,.70); }
-.tabbtn-active{ color:var(--accent); }
-.tabicon{ display:grid; place-items:center; padding:8px; border-radius:10px; }
-.tabicon-active{ background:var(--accent-weak); }
-.tablabel{ font-size:11px; }
-
-/* Page paddings */
-.screen{ padding:16px; padding-bottom:92px; } /* + место под таббар */
-
-/* Ensure SVG size never «раздувается» */
-svg.icon{ width:22px; height:22px; display:inline-block; }
+.navbar-grid{display:grid; grid-template-columns:repeat(5,1fr); height:66px;}
+.nav-btn{
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  color:rgba(255,255,255,.7); gap:2px;  /* было 6–8px → стало 2px */
+  font-size:var(--fz-11);
+}
+.nav-btn.active{color:var(--brand);}
+.nav-ico{display:grid; place-items:center; width:36px; height:28px; border-radius:10px;}
+.nav-btn.active .nav-ico{background:rgba(255,45,85,.15);}
