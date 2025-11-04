@@ -44,11 +44,11 @@ const MARKET: MarketItem[] = [
 ];
 
 const PEOPLE = [
-  { id:"u1", name:"Arseniy", role:"Designer" },
-  { id:"u2", name:"Badri", role:"Producer" },
-  { id:"u3", name:"Daniil", role:"Founder" },
-  { id:"u4", name:"Yana", role:"Artist" },
-  { id:"u5", name:"Kir", role:"Sound" },
+  { id:"u1", name:"Арсений", role:"Основатель" },
+  { id:"u2", name:"Даниил", role:"Нефтянник" },
+  { id:"u3", name:"Бадри", role:"Gruzin" },
+  { id:"u4", name:"9Mice", role:"Artist" },
+  { id:"u5", name:"Kai Angel", role:"Музыкант" },
 ];
 
 /** ── Primitives ───────────────────────────────────── */
