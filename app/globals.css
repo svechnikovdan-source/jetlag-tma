@@ -29,10 +29,11 @@ body{
 .row{display:flex; align-items:center}
 .row-b{display:flex; align-items:center; justify-content:space-between}
 
-.card{
-  background:var(--card);
-  border:1px solid var(--line);
-  border-radius:16px; overflow:hidden;
+.card {
+  background: rgba(0, 0, 0, 0.35); /* прозрачный фон */
+  backdrop-filter: blur(8px);      /* эффект стекла */
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px; overflow:hidden;
 }
 .card-sec{padding:12px 12px}
 
