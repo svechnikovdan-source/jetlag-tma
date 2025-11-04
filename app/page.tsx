@@ -73,13 +73,13 @@ const TopBar: React.FC<{
     </div>
     <div className="sp-2" />
     <div className="row-b">
-      <button className="row" onClick={onProfile} aria-label="Профиль" style={{gap:8, background:"rgba(255,255,255,.06)", border:"1px solid rgba(255,255,255,.18)", borderRadius:12, height:28, padding:"0 10px"}}>
+      <button className="row" onClick={onProfile} aria-label="Профиль" style={{gap:8, background:"rgba(255,255,255,.06)", border:"1px solid rgba(255,255,255,.18)", borderRadius:10, height:28, padding:"0 10px"}}>
         <span className="ava" style={{width:22,height:22, borderRadius:8}}><Icon.User/></span>
         <span style={{fontSize:12,fontWeight:600}}>Даниил</span>
       </button>
       <div className="row" style={{gap:8}}>
         <Chip>{status}</Chip>
-        <Chip>{plan ?? "нет плана"}</Chip>
+        <Chip>{plan ?? "PRO"}</Chip>
       </div>
     </div>
     <div className="sp-2" />
@@ -152,7 +152,7 @@ const HomeScreen: React.FC<{go:React.Dispatch<React.SetStateAction<Tab>>}> = ({g
           { k: "missions" as Tab, t: "Миссии", d: "Выбирай задачи" },
           { k: "events" as Tab, t: "Афиша", d: "Митапы и турниры" },
           { k: "market" as Tab, t: "Маркет", d: "Услуги и товары" },
-          { k: "jetlag" as Tab, t: "FMT.JETLAG", d: "О нас, видео и продукты" },
+          { k: "jetlag" as Tab, t: "О нас", d: "О нас, видео и продукты" },
         ].map((b) => (
           <div className="card" key={b.k}>
             <div className="card-sec">

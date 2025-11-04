@@ -49,7 +49,7 @@ body{
 
 .chip{
   display:inline-flex; align-items:center; height:28px; padding:0 10px;
-  border-radius:999px; border:1px solid rgba(255,255,255,.18);
+  border-radius:10px; border:1px solid rgba(255,255,255,.18);
   background:rgba(255,255,255,.06); font-size:12px; color:#fff;
 }
 
