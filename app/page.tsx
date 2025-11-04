@@ -242,98 +242,136 @@ const MarketScreen: React.FC = () => (
 );
 
 const JetlagHub: React.FC<{go:React.Dispatch<React.SetStateAction<Tab>>}> = ({go}) => (
-  <div className="page pad fade-in">
-    <div className="card">
-      <div className="card-sec">
-        <div className="t-caption">О нас</div>
-        <div className="sp-2" />
-        <div className="h2" style={{fontSize:18}}>Empowering talents to<br/>bring value through content</div>
-      </div>
-    </div>
+  <div
+    className="page pad fade-in"
+    style={{
+      position: "relative",
+      backgroundImage: 'url("/jetlag-bg.jpg")',
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+      backgroundRepeat: "no-repeat",
+      minHeight: "100vh",
+    }}
+  >
+    {/* тёмный полупрозрачный слой поверх фона */}
+    <div
+      style={{
+        position: "absolute",
+        inset: 0,
+        background: "rgba(0,0,0,0.55)",
+        zIndex: 0,
+      }}
+    />
 
-    <div className="sp-4" />
-
-    <div className="card">
-      <div className="card-sec">
-        <div className="row-b">
-          <div className="row" style={{gap:10}}>
-            <span className="ava" style={{width:28,height:28, borderRadius:8}}><Icon.Temple/></span>
-            <div className="h2">Усадьба JETLAG</div>
-          </div>
-          <Button kind="secondary" size="s" onClick={()=>alert("3D-тур (демо)")}>Открыть 3D-тур</Button>
-        </div>
-        <div className="t-body" style={{marginTop:6}}>Кампус для резиденций, съёмок и встреч сообщества.</div>
-      </div>
-    </div>
-
-    <div className="sp-4" />
-
-    <div className="h2" style={{marginBottom:8}}>JETLAG продукты</div>
-    <div className="grid-2">
-      {[
-        {t:"Спорт", d:"Падел клуб и экипировка"},
-        {t:"Waterr", d:"Газированная вода • 0.5 L"},
-        {t:"Bluora", d:"Косметика и travel наборы"},
-        {t:"Одежда", d:"Худи, футболки, аксессуары"},
-      ].map((p, i)=>(
-        <div className="card" key={i}>
-          <div className="card-sec">
-            <div className="h2">{p.t}</div>
-            <div className="t-body" style={{marginTop:4}}>{p.d}</div>
-            <div className="sp-3" />
-            <Button kind="secondary" size="s">Подробнее</Button>
+    {/* основной контент */}
+    <div style={{ position: "relative", zIndex: 1 }}>
+      <div className="card">
+        <div className="card-sec">
+          <div className="t-caption">О нас</div>
+          <div className="sp-2" />
+          <div className="h2" style={{ fontSize: 18 }}>
+            Empowering talents to<br />
+            bring value through content
           </div>
         </div>
-      ))}
-    </div>
+      </div>
 
-    <div className="sp-4" />
+      <div className="sp-4" />
 
-    <div className="h2">Видео и атмосфера</div>
-    <div className="sp-2" />
-    <div className="video">
-      <iframe
-        src="https://www.youtube-nocookie.com/embed/-yPMtwa8f14?mute=1&playsinline=1&controls=1&rel=0&modestbranding=1"
-        allow="autoplay; encrypted-media; picture-in-picture"
-        title="FMT.JETLAG"
-      />
-    </div>
-
-    <div className="sp-4" />
-
-    <div className="h2">Амбассадоры</div>
-    <div className="sp-2" />
-    <div className="scroller">
-      <div className="rowx">
-        {PEOPLE.map(p=>{
-          const init = p.name.split(" ").map(s=>s[0]).join("").slice(0,2).toUpperCase();
-          return (
-            <div key={p.id} className="card" style={{minWidth:220}}>
-              <div className="card-sec">
-                <div className="row" style={{gap:10}}>
-                  <div className="ava">{init}</div>
-                  <div>
-                    <div className="h2" style={{fontSize:13}}>{p.name}</div>
-                    <div className="t-caption" style={{marginTop:2}}>{p.role}</div>
-                  </div>
-                </div>
-                <div className="t-caption" style={{marginTop:10}}>создаём культуру вместе</div>
-              </div>
+      <div className="card">
+        <div className="card-sec">
+          <div className="row-b">
+            <div className="row" style={{ gap: 10 }}>
+              <span className="ava" style={{ width: 28, height: 28, borderRadius: 8 }}>
+                <Icon.Temple />
+              </span>
+              <div className="h2">Усадьба JETLAG</div>
             </div>
-          )
-        })}
+            <Button kind="secondary" size="s" onClick={() => alert("3D-тур (демо)")}>
+              Открыть 3D-тур
+            </Button>
+          </div>
+          <div className="t-body" style={{ marginTop: 6 }}>
+            Кампус для резиденций, съёмок и встреч сообщества.
+          </div>
+        </div>
       </div>
-    </div>
 
-    <div className="sp-4" />
+      <div className="sp-4" />
 
-    <div className="card">
-      <div className="card-sec">
-        <div className="h2" style={{marginBottom:8}}>Новости и релизы</div>
-        <div className="list">
-          <div className="card" style={{background:"rgba(255,255,255,.05)"}}><div className="card-sec">Viperr Waterr — новая банка • 12/2025</div></div>
-          <div className="card" style={{background:"rgba(255,255,255,.05)"}}><div className="card-sec">Bluora Travel Kit v2 — обновили формулы и упаковку</div></div>
-          <div className="card" style={{background:"rgba(255,255,255,.05)"}}><div className="card-sec">Night Tournament — регистрация открыта</div></div>
+      <div className="h2" style={{ marginBottom: 8 }}>JETLAG экосистема</div>
+      <div className="grid-2">
+        {[
+          { t: "Спорт", d: "Падел клуб и экипировка" },
+          { t: "Waterr", d: "Газированная вода" },
+          { t: "Bluora", d: "Косметика и travel наборы" },
+          { t: "Одежда", d: "Худи, футболки, аксессуары" },
+        ].map((p, i) => (
+          <div className="card" key={i}>
+            <div className="card-sec">
+              <div className="h2">{p.t}</div>
+              <div className="t-body" style={{ marginTop: 4 }}>{p.d}</div>
+              <div className="sp-3" />
+              <Button kind="secondary" size="s">Подробнее</Button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="sp-4" />
+
+      <div className="h2">Видео и атмосфера</div>
+      <div className="sp-2" />
+      <div className="video">
+        <iframe
+          src="https://www.youtube-nocookie.com/embed/-yPMtwa8f14?mute=1&playsinline=1&controls=1&rel=0&modestbranding=1"
+          allow="autoplay; encrypted-media; picture-in-picture"
+          title="FMT.JETLAG"
+        />
+      </div>
+
+      <div className="sp-4" />
+
+      <div className="h2">Амбассадоры</div>
+      <div className="sp-2" />
+      <div className="scroller">
+        <div className="rowx">
+          {PEOPLE.map((p) => {
+            const init = p.name.split(" ").map(s => s[0]).join("").slice(0, 2).toUpperCase();
+            return (
+              <div key={p.id} className="card" style={{ minWidth: 220 }}>
+                <div className="card-sec">
+                  <div className="row" style={{ gap: 10 }}>
+                    <div className="ava">{init}</div>
+                    <div>
+                      <div className="h2" style={{ fontSize: 13 }}>{p.name}</div>
+                      <div className="t-caption" style={{ marginTop: 2 }}>{p.role}</div>
+                    </div>
+                  </div>
+                  <div className="t-caption" style={{ marginTop: 10 }}>создаём культуру вместе</div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="sp-4" />
+
+      <div className="card">
+        <div className="card-sec">
+          <div className="h2" style={{ marginBottom: 8 }}>Новости и релизы</div>
+          <div className="list">
+            <div className="card" style={{ background: "rgba(255,255,255,.05)" }}>
+              <div className="card-sec">Viperr Waterr — новая банка • 12/2025</div>
+            </div>
+            <div className="card" style={{ background: "rgba(255,255,255,.05)" }}>
+              <div className="card-sec">Bluora Travel Kit v2 — обновили формулы и упаковку</div>
+            </div>
+            <div className="card" style={{ background: "rgba(255,255,255,.05)" }}>
+              <div className="card-sec">Night Tournament — регистрация открыта</div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
