@@ -122,26 +122,49 @@ const Hero: React.FC = () => (
 );
 
 const HomeScreen: React.FC<{go:React.Dispatch<React.SetStateAction<Tab>>}> = ({go}) => (
-  <div className="page pad fade-in">
-    <Hero />
-    <div className="sp-4" />
-    <div className="grid-2">
-      {[
-        {k:"missions" as Tab,t:"Миссии",d:"Выбирай задачи"},
-        {k:"events" as Tab,t:"Афиша",d:"Митапы и турниры"},
-        {k:"market" as Tab,t:"Маркет",d:"Услуги и товары"},
-        {k:"jetlag" as Tab,t:"FMT.JETLAG",d:"О нас, видео и продукты"},
-      ].map(b=>(
-        <div className="card" key={b.k}>
-          <div className="card-sec">
-            <div className="row-b">
-              <div className="h2">{b.t}</div>
-              <Button kind="ghost" size="s" onClick={()=>go(b.k)}>Открыть</Button>
+  <div
+    className="page pad fade-in"
+    style={{
+      position: "relative",
+      backgroundImage: 'url("/home-bg.jpg")', // путь к твоему фону
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+      backgroundRepeat: "no-repeat",
+      minHeight: "100vh",
+    }}
+  >
+    {/* затемняющий слой поверх фона */}
+    <div
+      style={{
+        position: "absolute",
+        inset: 0,
+        background: "rgba(0,0,0,0.55)",
+        zIndex: 0,
+      }}
+    />
+
+    {/* контент поверх слоя */}
+    <div style={{ position: "relative", zIndex: 1 }}>
+      <Hero />
+      <div className="sp-4" />
+      <div className="grid-2">
+        {[
+          { k: "missions" as Tab, t: "Миссии", d: "Выбирай задачи" },
+          { k: "events" as Tab, t: "Афиша", d: "Митапы и турниры" },
+          { k: "market" as Tab, t: "Маркет", d: "Услуги и товары" },
+          { k: "jetlag" as Tab, t: "FMT.JETLAG", d: "О нас, видео и продукты" },
+        ].map((b) => (
+          <div className="card" key={b.k}>
+            <div className="card-sec">
+              <div className="row-b">
+                <div className="h2">{b.t}</div>
+                <Button kind="ghost" size="s" onClick={() => go(b.k)}>Открыть</Button>
+              </div>
+              <div className="t-body" style={{ marginTop: 6 }}>{b.d}</div>
             </div>
-            <div className="t-body" style={{marginTop:6}}>{b.d}</div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   </div>
 );
