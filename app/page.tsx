@@ -322,13 +322,13 @@ const JetlagHub: React.FC<{go:React.Dispatch<React.SetStateAction<Tab>>}> = ({go
 
       <div className="sp-4" />
 
-      <div className="h2" style={{ marginBottom: 8 }}>JETLAG экосистема</div>
+      <div className="h2" style={{ marginBottom: 8 }}>Экосистема FMT.JETLAG</div>
       <div className="grid-2">
         {[
-          { t: "Спорт", d: "Падел клуб и экипировка" },
-          { t: "Waterr", d: "Газированная вода" },
-          { t: "Bluora", d: "Косметика и travel наборы" },
-          { t: "Одежда", d: "Худи, футболки, аксессуары" },
+          { t: "Продакшн", d: "Создаем контент для главных брендов мира" },
+          { t: "Музыка", d: "Музыкальный лейбл с крупнейшими артистами России и СНГ" },
+          { t: "Спорт", d: "Скоро открытие" },
+          { t: "Продукты", d: "Скоро открытие" },
         ].map((p, i) => (
           <div className="card" key={i}>
             <div className="card-sec">
