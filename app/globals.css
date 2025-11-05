@@ -78,7 +78,7 @@ body{
   gap:4px; font-size:11px; cursor:pointer;
 }
 .bn > button .ic{
-  display:grid; place-items:center; width:34px; height:34px; border-radius:10px;
+  display:grid; place-items:center; width:100px; height:34px; border-radius:10px;
 }
 .bn > button.active{color:var(--accent)}
 .bn > button.active .ic{background:rgba(255,45,85,.15)}

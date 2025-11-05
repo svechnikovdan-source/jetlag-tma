@@ -73,9 +73,9 @@ const TopBar: React.FC<{
     </div>
     <div className="sp-2" />
     <div className="row-b">
-      <button className="row" onClick={onProfile} aria-label="Профиль" style={{gap:8, background:"rgba(255,255,255,.06)", border:"1px solid rgba(255,255,255,.18)", borderRadius:10, height:28, padding:"0 10px"}}>
+      <button className="row" onClick={onProfile} aria-label="Профиль" style={{gap:8, background:"rgba(255,255,255,.06)", border:"none", borderRadius:10, height:28, padding:"0 10px"}}>
         <span className="ava" style={{width:22,height:22, borderRadius:8}}><Icon.User/></span>
-        <span style={{fontSize:12,fontWeight:600}}>Даниил</span>
+        <span style={{fontSize:12,fontWeight:600,color:"white"}}>Даниил</span>
       </button>
       <div className="row" style={{gap:8}}>
         <Chip>{status}</Chip>
