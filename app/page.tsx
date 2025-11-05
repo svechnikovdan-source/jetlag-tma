@@ -46,7 +46,7 @@ const EVENTS: EventItem[] = [
 const MARKET: MarketItem[] = [
   { id:"i1", type:"SERVICE", title:"Сведение и мастеринг трека", price:8000, owner:"@audio.kir" },
   { id:"i2", type:"SERVICE", title:"Motion-дизайн (30-сек ролик)", price:15000, owner:"@gfx.storm" },
-  { id:"i3", type:"PRODUCT", title:"Bluora Travel Kit v2", price:2490, owner:"@bluora" },
+  { id:"i3", type:"PRODUCT", title:"Разработка дизайна Travel Kit v2", price:2490, owner:"@bluora" },
 ];
 
 const PEOPLE = [
