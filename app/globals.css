@@ -70,7 +70,7 @@ body{
 }
 .bn{
   display:grid; grid-template-columns:repeat(5,1fr);
-  height:64px; padding:0 8px;
+  height:100px; padding:0 8px;
 }
 .bn > button{
   appearance:none; background:none; border:none; color:rgba(255,255,255,.75);
