@@ -21,7 +21,7 @@ function useTelegramFullscreen() {
     };
     applyVh();
 
-    // реагируем на изменения вьюпорта Telegram (клавиатура/скрытие панели и т.д.)
+    // реагируем на изменение вьюпорта Telegram (клавиатура/скрытие панели и т.д.)
     tg.onEvent?.("viewportChanged", applyVh);
     return () => {
       try { tg.offEvent?.("viewportChanged", applyVh); } catch {}
