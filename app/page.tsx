@@ -7,27 +7,20 @@ function useTelegramFullscreen() {
     const tg = (window as any)?.Telegram?.WebApp;
     if (!tg) return;
 
-    // сообщаем Telegram, что WebApp готов, и разворачиваем на весь экран
     tg.ready();
     tg.expand();
-
-    // подтверждение при закрытии свайпом/крестиком (чтобы не смахивали случайно)
     tg.enableClosingConfirmation?.();
 
-    // опционально: подстроить высоту в CSS-переменную (если пригодится в стилях)
     const applyVh = () => {
       const h = tg.viewportHeight ?? window.innerHeight;
       document.documentElement.style.setProperty("--tgvh", `${h}px`);
     };
     applyVh();
-
-    // реагируем на изменение вьюпорта Telegram (клавиатура/скрытие панели и т.д.)
     tg.onEvent?.("viewportChanged", applyVh);
-    return () => {
-      try { tg.offEvent?.("viewportChanged", applyVh); } catch {}
-    };
+    return () => tg.offEvent?.("viewportChanged", applyVh);
   }, []);
 }
+
 
 /** ── Types ───────────────────────────────────────── */
 type Tab = "home" | "missions" | "events" | "market" | "jetlag";
