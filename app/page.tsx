@@ -1,26 +1,8 @@
 "use client";
-import React, { useMemo, useState, useEffect } from "react";
-
-/** Телеграм-фуллскрин: expand + цвета + анти-bounce */
-function useTelegramFullscreen() {
-  useEffect(() => {
-    const tg = (window as any)?.Telegram?.WebApp;
-    try {
-      tg?.ready();
-      tg?.expand();                         // растянуть на максимум
-      tg?.setBackgroundColor?.("#000000");  // фон webview
-      tg?.setHeaderColor?.("secondary_bg_color"); // темный хедер в Telegram
-      tg?.enableClosingConfirmation?.();    // подтверждение при закрытии (опционально)
-
-      // убрать iOS-bounce внутри webview
-      document.documentElement.style.overscrollBehaviorY = "none";
-      document.body.style.overscrollBehaviorY = "none";
-    } catch {}
-  }, []);
-}
+import React, { useMemo, useState } from "react";
 
 /** ── Types ───────────────────────────────────────── */
-type Tab = "home" | "missions" | "events" | "market" | "jetlag";
+type Tab = "home" | "missions" | "events" | "market" | "jetlag" | "profile";
 type StatusLevel = "WHITE" | "RED" | "BLACK";
 type PlanKey = "PLUS" | "PRO" | "STUDIO" | null;
 const rank = (s: StatusLevel) => (s === "WHITE" ? 1 : s === "RED" ? 2 : 3);
@@ -34,11 +16,10 @@ const Icon = {
   Brand: () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="10.5" y="7" width="3" height="3" rx="0.5"/><rect x="10.5" y="14" width="3" height="3" rx="0.5"/></svg>),
   User: () => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="7.5" r="3.5"/><path d="M4 20a8 8 0 0 1 16 0"/></svg>),
   Settings: () => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.6 1.6 0 0 0-1.82-.33A1.6 1.6 0 0 0 14 21a2 2 0 0 1-4 0 1.6 1.6 0 0 0-1-1.51 1.6 1.6 0 0 0-1.82.33l-.06.06A2 2 0 1 1 4.29 17.9l.06-.06A1.6 1.6 0 0 0 4 16.02 1.6 1.6 0 0 0 2.49 15H3a2 2 0 0 1 0-4h.09c.67 0 1.27-.39 1.51-1a1.6 1.6 0 0 0-.33-1.82l-.06-.06A2 2 0 1 1 7.04 4.29l.06.06c.5.5 1.2.66 1.82.33A1.6 1.6 0 0 0 10 3a2 2 0 0 1 4 0 1.6 1.6 0 0 0 1.08 1.6c.62.33 1.32.17 1.82-.33l.06-.06A2 2 0 1 1 21 7.04l-.06.06c.5.5.66 1.2.33 1.82.24.61.84 1 1.51 1H21a2 2 0 0 1 0 4h-.09a1.6 1.6 0 0 0-1.51 1z"/></svg>),
-  Temple: () => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 10l9-5 9 5"/><path d="M4 10v8M8 10v8M12 10v8M16 10v8M20 10v8M2 18h20"/></svg>),
+  Temple: () => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 10l9-5 9 5"/><path d="M4 10v8M8 10v8M12 10v8M16 10в8M20 10v8M2 18h20"/></svg>),
   Lock: () => (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="11" width="18" height="10" rx="2" />
-      <path d="M7 11V8a5 5 0 0 1 10 0v3" />
+      <rect x="3" y="11" width="18" height="10" rx="2" /><path d="M7 11V8a5 5 0 0 1 10 0v3" />
     </svg>
   ),
 };
@@ -64,7 +45,7 @@ const EVENTS: EventItem[] = [
 const MARKET: MarketItem[] = [
   { id:"i1", type:"SERVICE", title:"Сведение и мастеринг трека", price:8000, owner:"@audio.kir" },
   { id:"i2", type:"SERVICE", title:"Motion-дизайн (30-сек ролик)", price:15000, owner:"@gfx.storm" },
-  { id:"i3", type:"PRODUCT", title:"Разработка дизайна Travel Kit v2", price:2490, owner:"@bluora" },
+  { id:"i3", type:"PRODUCT", title:"Bluora Travel Kit v2", price:2490, owner:"@bluora" },
 ];
 
 const PEOPLE = [
@@ -97,13 +78,18 @@ const TopBar: React.FC<{
     </div>
     <div className="sp-2" />
     <div className="row-b">
-      <button className="row" onClick={onProfile} aria-label="Профиль" style={{gap:8, background:"rgba(255,255,255,.06)", border:"none", borderRadius:10, height:28, padding:"0 10px"}}>
-        <span className="ava" style={{width:22,height:22, borderRadius:8}}><Icon.User/></span>
+      <button
+        className="row"
+        onClick={onProfile}
+        aria-label="Профиль"
+        style={{gap:8, background:"#1a1a1a", border:"none", borderRadius:10, height:28, padding:"0 12px", alignItems:"center"}}
+      >
+        <span className="ava" style={{width:22,height:22, borderRadius:8, background:"rgba(255,255,255,.15)", display:"flex", alignItems:"center", justifyContent:"center"}}><Icon.User/></span>
         <span style={{fontSize:12,fontWeight:600,color:"white"}}>Даниил</span>
       </button>
       <div className="row" style={{gap:8}}>
         <Chip>{status}</Chip>
-        <Chip>{plan ?? "BASIC"}</Chip>
+        <Chip>{plan ?? "нет плана"}</Chip>
       </div>
     </div>
     <div className="sp-2" />
@@ -112,7 +98,7 @@ const TopBar: React.FC<{
 
 /** ── Bottom nav ───────────────────────────────────── */
 const BottomNav: React.FC<{tab:Tab; onChange:React.Dispatch<React.SetStateAction<Tab>>}> = ({tab,onChange}) => {
-  const Item: React.FC<{k:Tab; label:string; icon:React.FC}> = ({k,label,icon:IconX})=>{
+  const Item: React.FC<{k:Extract<Tab,"home"|"missions"|"events"|"market"|"jetlag">; label:string; icon:React.FC}> = ({k,label,icon:IconX})=>{
     const active = tab===k;
     return (
       <button className={active?"active":""} onClick={()=>onChange(k)} role="tab" aria-selected={active}>
@@ -199,17 +185,10 @@ const MissionsScreen: React.FC<{status:StatusLevel; plan:PlanKey;}> = ({status, 
           return (
             <div className="card" key={m.id} style={{ position: "relative", overflow: "hidden" }}>
               {locked && (
-                <div aria-hidden
-                  style={{
-                    position: "absolute", inset: 0, background: "rgba(0,0,0,0.45)",
-                    display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1
-                  }}>
-                  <div className="row"
-                    style={{ gap: 8, padding: "6px 10px", borderRadius: 10, background: "rgba(0,0,0,0.55)", border: "1px solid rgba(255,255,255,0.12)" }}>
+                <div aria-hidden style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:1 }}>
+                  <div className="row" style={{ gap: 8, padding: "6px 10px", borderRadius: 10, background: "rgba(0,0,0,0.55)", border: "1px solid rgba(255,255,255,0.12)" }}>
                     <Icon.Lock />
-                    <span className="t-caption" style={{ color: "rgba(255,255,255,.9)" }}>
-                      Требуется {needStatus} {needPlan}
-                    </span>
+                    <span className="t-caption" style={{ color: "rgba(255,255,255,.9)" }}>Требуется {needStatus} {needPlan}</span>
                   </div>
                 </div>
               )}
@@ -222,15 +201,11 @@ const MissionsScreen: React.FC<{status:StatusLevel; plan:PlanKey;}> = ({status, 
                 <div className="t-body">Дедлайн: {m.deadline}</div>
                 <div className="t-body">Теги: {m.tags.join(", ")}</div>
                 <div className="t-body">Награды: {m.rewards.jetpoints} JP{m.rewards.cash ? ` + ${m.rewards.cash}` : ""}</div>
-                <div className="t-caption" style={{ marginTop: 6 }}>
-                  Доступ: {needStatus}{m.requiredPlan ? ` + план ${m.requiredPlan}` : ""}
-                </div>
+                <div className="t-caption" style={{ marginTop: 6 }}>Доступ: {needStatus}{m.requiredPlan ? ` + план ${m.requiredPlan}` : ""}</div>
               </div>
               <div className="separator" />
               <div className="card-sec" style={{ display: "flex", justifyContent: "flex-end" }}>
-                <Button size="s" className={locked ? "btn-disabled" : ""} onClick={!locked ? () => alert("Отклик отправлен (демо)") : undefined}>
-                  Участвовать
-                </Button>
+                <Button size="s" className={locked ? "btn-disabled" : ""} onClick={!locked ? () => alert("Отклик отправлен (демо)") : undefined}>Участвовать</Button>
               </div>
             </div>
           );
@@ -331,13 +306,9 @@ const JetlagHub: React.FC<{go:React.Dispatch<React.SetStateAction<Tab>>}> = ({go
               </span>
               <div className="h2">Усадьба JETLAG</div>
             </div>
-            <Button kind="secondary" size="s" onClick={() => alert("3D-тур (демо)")}>
-              Открыть 3D-тур
-            </Button>
+            <Button kind="secondary" size="s" onClick={() => alert("3D-тур (демо)")}>Открыть 3D-тур</Button>
           </div>
-          <div className="t-body" style={{ marginTop: 6 }}>
-            Кампус для резиденций, съёмок и встреч сообщества.
-          </div>
+          <div className="t-body" style={{ marginTop: 6 }}>Кампус для резиденций, съёмок и встреч сообщества.</div>
         </div>
       </div>
 
@@ -364,8 +335,6 @@ const JetlagHub: React.FC<{go:React.Dispatch<React.SetStateAction<Tab>>}> = ({go
 
       <div className="sp-4" />
 
-      <div className="h2"></div>
-      <div className="sp-2" />
       <div className="video">
         <iframe
           src="https://www.youtube-nocookie.com/embed/-yPMtwa8f14?mute=1&playsinline=1&controls=1&rel=0&modestbranding=1"
@@ -406,15 +375,9 @@ const JetlagHub: React.FC<{go:React.Dispatch<React.SetStateAction<Tab>>}> = ({go
         <div className="card-sec">
           <div className="h2" style={{ marginBottom: 8 }}>Новости и релизы</div>
           <div className="list">
-            <div className="card" style={{ background: "rgba(255,255,255,.05)" }}>
-              <div className="card-sec">Waterr — новая банка • 12/2025</div>
-            </div>
-            <div className="card" style={{ background: "rgba(255,255,255,.05)" }}>
-              <div className="card-sec">Cosmetics Travel Kit v2 — обновили формулы и упаковку</div>
-            </div>
-            <div className="card" style={{ background: "rgba(255,255,255,.05)" }}>
-              <div className="card-sec">Night Tournament — регистрация открыта</div>
-            </div>
+            <div className="card" style={{ background: "rgba(255,255,255,.05)" }}><div className="card-sec">Waterr — новая банка • 12/2025</div></div>
+            <div className="card" style={{ background: "rgba(255,255,255,.05)" }}><div className="card-sec">Cosmetics Travel Kit v2 — обновили формулы и упаковку</div></div>
+            <div className="card" style={{ background: "rgba(255,255,255,.05)" }}><div className="card-sec">Night Tournament — регистрация открыта</div></div>
           </div>
         </div>
       </div>
@@ -422,20 +385,100 @@ const JetlagHub: React.FC<{go:React.Dispatch<React.SetStateAction<Tab>>}> = ({go
   </div>
 );
 
+/** ── Новый экран: Профиль ─────────────────────────── */
+const ProfileScreen: React.FC<{status:StatusLevel; plan:PlanKey; jetpoints:number; next:number; onSettings:()=>void;}> =
+({ status, plan, jetpoints, next, onSettings }) => {
+  const progress = Math.min(100, Math.round((jetpoints / next) * 100));
+  const ACTIVE = MISSIONS.slice(0, 2);
+  const ACH = [
+    { id:"a1", title:"Первый отклик", desc:"Отправил 1 заявку на миссию" },
+    { id:"a2", title:"100 JetPoints", desc:"Накопил 100 JP" },
+    { id:"a3", title:"Создатель", desc:"Опубликовал товар/услугу" },
+  ];
+  return (
+    <div className="page pad fade-in">
+      {/* Цифровой паспорт */}
+      <div className="card">
+        <div className="card-sec">
+          <div className="row-b">
+            <div className="h2">Цифровой паспорт</div>
+            <Button kind="ghost" size="s" onClick={onSettings}>Настройки</Button>
+          </div>
+          <div className="sp-2" />
+          <div className="t-body">JetPoints: <b>{jetpoints}</b> / {next}</div>
+          <div className="progress"><div className="progress__bar" style={{ width: `${progress}%` }} /></div>
+          <div className="t-caption" style={{ marginTop: 6 }}>Статус: {status} · План: {plan ?? "нет плана"}</div>
+        </div>
+      </div>
+
+      <div className="sp-3" />
+
+      {/* Достижения */}
+      <div className="card">
+        <div className="card-sec">
+          <div className="h2">Достижения</div>
+        </div>
+        <div className="separator" />
+        <div className="card-sec">
+          <div className="list">
+            {ACH.map(a=>(
+              <div className="card" key={a.id} style={{ background:"rgba(255,255,255,.05)" }}>
+                <div className="card-sec">
+                  <div className="h2" style={{ fontSize: 14 }}>{a.title}</div>
+                  <div className="t-caption" style={{ marginTop: 4 }}>{a.desc}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="sp-3" />
+
+      {/* Задачи */}
+      <div className="card">
+        <div className="card-sec">
+          <div className="h2">Задачи</div>
+        </div>
+        <div className="separator" />
+        <div className="card-sec">
+          <div className="list">
+            {ACTIVE.map(m=>(
+              <div className="card" key={m.id}>
+                <div className="card-sec">
+                  <div className="row-b">
+                    <div className="h2" style={{ fontSize: 15 }}>{m.title}</div>
+                    <Chip>{m.brand}</Chip>
+                  </div>
+                  <div className="t-caption" style={{ marginTop: 6 }}>Дедлайн: {m.deadline} · Теги: {m.tags.join(", ")}</div>
+                </div>
+                <div className="separator" />
+                <div className="card-sec" style={{ display:"flex", justifyContent:"flex-end" }}>
+                  <Button size="s">Открыть</Button>
+                </div>
+              </div>
+            ))}
+            {ACTIVE.length===0 && <div className="t-caption">Активных задач пока нет.</div>}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 /** ── Root ─────────────────────────────────────────── */
 export default function App(){
-  useTelegramFullscreen(); // ⬅️ активируем фуллскрин при монтировании
-
   const [tab, setTab] = useState<Tab>("jetlag");
   const [status] = useState<StatusLevel>("WHITE");
   const [plan]   = useState<PlanKey>(null);
+  const jetpoints = 260;
 
   return (
-    <div className="app-root">
+    <>
       <TopBar
         status={status}
         plan={plan}
-        onProfile={()=>setTab("home")}
+        onProfile={()=>setTab("profile")}
         onSettings={()=>alert("Настройки (демо)")}
       />
 
@@ -444,8 +487,9 @@ export default function App(){
       {tab==="events" && <EventsScreen status={status} plan={plan}/>}
       {tab==="market" && <MarketScreen/>}
       {tab==="jetlag" && <JetlagHub go={setTab}/>}
+      {tab==="profile" && <ProfileScreen status={status} plan={plan} jetpoints={jetpoints} next={500} onSettings={()=>alert("Настройки (демо)")} />}
 
       <BottomNav tab={tab} onChange={setTab}/>
-    </div>
+    </>
   );
 }

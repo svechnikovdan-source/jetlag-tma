@@ -127,3 +127,16 @@ body {
   position: relative;
   touch-action: manipulation;
 }
+/* progress bar for profile */
+.progress {
+  margin-top: 8px;
+  width: 100%;
+  height: 8px;
+  background: rgba(255,255,255,.12);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.progress__bar {
+  height: 100%;
+  background: white;
+}
