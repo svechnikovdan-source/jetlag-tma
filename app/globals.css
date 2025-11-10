@@ -88,3 +88,20 @@ body{
 
 .fade-in{animation:fade .18s ease-out both}
 @keyframes fade{from{opacity:.0; transform:translateY(6px)} to{opacity:1; transform:translateY(0)}}
+/* --- Telegram WebApp viewport fix (safe fullscreen) --- */
+:root { --tgvh: 100vh; }
+
+html, body {
+  height: var(--tgvh);
+  min-height: var(--tgvh);
+  background: #000;          /* чтобы не мигал белый фон при ресайзе */
+}
+
+#root, .webapp {
+  min-height: var(--tgvh);
+}
+
+/* На современных браузерах используем 100svh */
+@supports (height: 100svh) {
+  :root { --tgvh: 100svh; }
+}

@@ -1,33 +1,31 @@
 "use client";
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState } from "react";import React, { useEffect } from "react";
 
-/** ── Telegram fullscreen hook ─────────────────────── */
 function useTelegramFullscreen() {
   useEffect(() => {
     const tg = (window as any)?.Telegram?.WebApp;
     if (!tg) return;
 
-    // сообщаем Telegram, что WebApp готов, и разворачиваем на весь экран
-    tg.ready();
-    tg.expand();
+    tg.ready();                       // сообщаем Telegram, что всё ок
+    tg.expand();                      // разворачиваем на весь экран
+    tg.enableClosingConfirmation();   // подтверждение при попытке закрыть
+    // tg.setHeaderColor("secondary"); // опционально: тёмный хедер
+    // tg.setBackgroundColor("#000");  // опционально: цвет фона
 
-    // подтверждение при закрытии свайпом/крестиком (чтобы не смахивали случайно)
-    tg.enableClosingConfirmation?.();
-
-    // опционально: подстроить высоту в CSS-переменную (если пригодится в стилях)
     const applyVh = () => {
       const h = tg.viewportHeight ?? window.innerHeight;
       document.documentElement.style.setProperty("--tgvh", `${h}px`);
     };
-    applyVh();
 
-    // реагируем на изменения вьюпорта Telegram (клавиатура/скрытие панели и т.д.)
-    tg.onEvent?.("viewportChanged", applyVh);
+    applyVh();
+    tg.onEvent("viewportChanged", applyVh);
+
     return () => {
-      try { tg.offEvent?.("viewportChanged", applyVh); } catch {}
+      try { tg.offEvent("viewportChanged", applyVh); } catch {}
     };
   }, []);
 }
+
 
 /** ── Types ───────────────────────────────────────── */
 type Tab = "home" | "missions" | "events" | "market" | "jetlag";
@@ -43,7 +41,7 @@ const Icon = {
   Bag: () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M6 7h12l1 3v9H5V10l1-3z"/><path d="M9 7V6a3 3 0 0 1 6 0v1"/></svg>),
   Brand: () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="10.5" y="7" width="3" height="3" rx="0.5"/><rect x="10.5" y="14" width="3" height="3" rx="0.5"/></svg>),
   User: () => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="7.5" r="3.5"/><path d="M4 20a8 8 0 0 1 16 0"/></svg>),
-  Settings: () => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.6 1.6 0 0 0-1.82-.33A1.6 1.6 0 0 0 14 21a2 2 0 0 1-4 0 1.6 1.6 0 0 0-1-1.51 1.6 1.6 0 0 0-1.82.33l-.06.06A2 2 0 1 1 4.29 17.9l.06-.06A1.6 1.6 0 0 0 4 16.02 1.6 1.6 0 0 0 2.49 15H3a2 2 0 0 1 0-4h.09c.67 0 1.27-.39 1.51-1a1.6 1.6 0 0 0-.33-1.82l-.06-.06A2 2 0 1 1 7.04 4.29l.06.06c.5.5 1.2.66 1.82.33A1.6 1.6 0 0 0 10 3a2 2 0 0 1 4 0 1.6 1.6 0 0 0 1.08 1.6c.62.33 1.32.17 1.82-.33l.06-.06A2 2 0 1 1 21 7.04l-.06.06c-.5.5-.66 1.2-.33 1.82.24.61.84 1 1.51 1H21a2 2 0  1 0 0 4h-.09a1.6 1.6 0 0 0-1.51 1z"/></svg>),
+  Settings: () => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.6 1.6 0 0 0-1.82-.33A1.6 1.6 0 0 0 14 21a2 2 0 0 1-4 0 1.6 1.6 0 0 0-1-1.51 1.6 1.6 0 0 0-1.82.33l-.06.06A2 2 0 1 1 4.29 17.9l.06-.06A1.6 1.6 0 0 0 4 16.02 1.6 1.6 0 0 0 2.49 15H3a2 2 0 0 1 0-4h.09c.67 0 1.27-.39 1.51-1a1.6 1.6 0 0 0-.33-1.82l-.06-.06A2 2 0 1 1 7.04 4.29l.06.06c.5.5 1.2.66 1.82.33A1.6 1.6 0 0 0 10 3a2 2 0 0 1 4 0 1.6 1.6 0 0 0 1.08 1.6c.62.33 1.32.17 1.82-.33l.06-.06A2 2 0 1 1 21 7.04l-.06.06c-.5.5-.66 1.2-.33 1.82.24.61.84 1 1.51 1H21a2 2 0 0 1 0 4h-.09a1.6 1.6 0 0 0-1.51 1z"/></svg>),
   Temple: () => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 10l9-5 9 5"/><path d="M4 10v8M8 10v8M12 10v8M16 10v8M20 10v8M2 18h20"/></svg>),
     Lock: () => (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -477,8 +475,6 @@ const JetlagHub: React.FC<{go:React.Dispatch<React.SetStateAction<Tab>>}> = ({go
 
 /** ── Root ─────────────────────────────────────────── */
 export default function App(){
-  useTelegramFullscreen(); // 👈 только это добавлено
-
   const [tab, setTab] = useState<Tab>("jetlag");
   const [status] = useState<StatusLevel>("WHITE");
   const [plan]   = useState<PlanKey>(null);
