@@ -1,18 +1,27 @@
-export const metadata = {
-  title: "FMT.JETLAG — Mini App",
-  description: "Экосистема миссий, событий и маркетплейса",
-  viewport: "width=device-width, initial-scale=1, viewport-fit=cover",
-  themeColor: "#0b0b0d",
+import type { Metadata, Viewport } from "next";
+import "./globals.css";
+
+export const metadata: Metadata = {
+  title: "FMT.JETLAG",
+  description: "Mini app",
+  // ВАЖНО: никаких viewport или themeColor тут больше не указываем
 };
 
-import "./globals.css";
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: dark)", color: "#000000" },
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+  ],
+};
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ru">
-      <body>
-        {children}
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

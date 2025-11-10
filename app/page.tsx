@@ -21,7 +21,6 @@ function useTelegramFullscreen() {
   }, []);
 }
 
-
 /** ── Types ───────────────────────────────────────── */
 type Tab = "home" | "missions" | "events" | "market" | "jetlag";
 type StatusLevel = "WHITE" | "RED" | "BLACK";
