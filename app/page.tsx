@@ -1,23 +1,21 @@
 "use client";
 import React, { useMemo, useState, useEffect } from "react";
 
-/** ── Telegram fullscreen hook ─────────────────────── */
+/** Телеграм-фуллскрин: expand + цвета + анти-bounce */
 function useTelegramFullscreen() {
   useEffect(() => {
     const tg = (window as any)?.Telegram?.WebApp;
-    if (!tg) return;
+    try {
+      tg?.ready();
+      tg?.expand();                         // растянуть на максимум
+      tg?.setBackgroundColor?.("#000000");  // фон webview
+      tg?.setHeaderColor?.("secondary_bg_color"); // темный хедер в Telegram
+      tg?.enableClosingConfirmation?.();    // подтверждение при закрытии (опционально)
 
-    tg.ready();
-    tg.expand();
-    tg.enableClosingConfirmation?.();
-
-    const applyVh = () => {
-      const h = tg.viewportHeight ?? window.innerHeight;
-      document.documentElement.style.setProperty("--tgvh", `${h}px`);
-    };
-    applyVh();
-    tg.onEvent?.("viewportChanged", applyVh);
-    return () => tg.offEvent?.("viewportChanged", applyVh);
+      // убрать iOS-bounce внутри webview
+      document.documentElement.style.overscrollBehaviorY = "none";
+      document.body.style.overscrollBehaviorY = "none";
+    } catch {}
   }, []);
 }
 
@@ -35,9 +33,9 @@ const Icon = {
   Bag: () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M6 7h12l1 3v9H5V10l1-3z"/><path d="M9 7V6a3 3 0 0 1 6 0v1"/></svg>),
   Brand: () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="10.5" y="7" width="3" height="3" rx="0.5"/><rect x="10.5" y="14" width="3" height="3" rx="0.5"/></svg>),
   User: () => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="7.5" r="3.5"/><path d="M4 20a8 8 0 0 1 16 0"/></svg>),
-  Settings: () => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.6 1.6 0 0 0-1.82-.33A1.6 1.6 0 0 0 14 21a2 2 0 0 1-4 0 1.6 1.6 0 0 0-1-1.51 1.6 1.6 0 0 0-1.82.33l-.06.06A2 2 0 1 1 4.29 17.9l.06-.06A1.6 1.6 0 0 0 4 16.02 1.6 1.6 0 0 0 2.49 15H3a2 2 0 0 1 0-4h.09c.67 0 1.27-.39 1.51-1a1.6 1.6 0 0 0-.33-1.82l-.06-.06A2 2 0 1 1 7.04 4.29l.06.06c.5.5 1.2.66 1.82.33A1.6 1.6 0 0 0 10 3a2 2 0 0 1 4 0 1.6 1.6 0 0 0 1.08 1.6c.62.33 1.32.17 1.82-.33l.06-.06A2 2 0 1 1 21 7.04l-.06.06c-.5.5-.66 1.2-.33 1.82.24.61.84 1 1.51 1H21a2 2 0  1 0 0 4h-.09a1.6 1.6 0 0 0-1.51 1z"/></svg>),
+  Settings: () => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.6 1.6 0 0 0-1.82-.33A1.6 1.6 0 0 0 14 21a2 2 0 0 1-4 0 1.6 1.6 0 0 0-1-1.51 1.6 1.6 0 0 0-1.82.33l-.06.06A2 2 0 1 1 4.29 17.9l.06-.06A1.6 1.6 0 0 0 4 16.02 1.6 1.6 0 0 0 2.49 15H3a2 2 0 0 1 0-4h.09c.67 0 1.27-.39 1.51-1a1.6 1.6 0 0 0-.33-1.82l-.06-.06A2 2 0 1 1 7.04 4.29l.06.06c.5.5 1.2.66 1.82.33A1.6 1.6 0 0 0 10 3a2 2 0 0 1 4 0 1.6 1.6 0 0 0 1.08 1.6c.62.33 1.32.17 1.82-.33l.06-.06A2 2 0 1 1 21 7.04l-.06.06c.5.5.66 1.2.33 1.82.24.61.84 1 1.51 1H21a2 2 0 0 1 0 4h-.09a1.6 1.6 0 0 0-1.51 1z"/></svg>),
   Temple: () => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 10l9-5 9 5"/><path d="M4 10v8M8 10v8M12 10v8M16 10v8M20 10v8M2 18h20"/></svg>),
-    Lock: () => (
+  Lock: () => (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <rect x="3" y="11" width="18" height="10" rx="2" />
       <path d="M7 11V8a5 5 0 0 1 10 0v3" />
@@ -72,7 +70,7 @@ const MARKET: MarketItem[] = [
 const PEOPLE = [
   { id:"u1", name:"Арсений", role:"Основатель" },
   { id:"u2", name:"Даниил", role:"Нефтянник" },
-  { id:"u3", name:"Бадри", role:"Грузин" },
+  { id:"u3", name:"Бадри", role:"Gruzin" },
   { id:"u4", name:"9Mice", role:"Artist" },
   { id:"u5", name:"Kai Angel", role:"Музыкант" },
 ];
@@ -152,24 +150,14 @@ const HomeScreen: React.FC<{go:React.Dispatch<React.SetStateAction<Tab>>}> = ({g
     className="page pad fade-in"
     style={{
       position: "relative",
-      backgroundImage: 'url("/home-bg.jpg")', // путь к твоему фону
+      backgroundImage: 'url("/home-bg.jpg")',
       backgroundSize: "cover",
       backgroundPosition: "center",
       backgroundRepeat: "no-repeat",
       minHeight: "100vh",
     }}
   >
-    {/* затемняющий слой поверх фона */}
-    <div
-      style={{
-        position: "absolute",
-        inset: 0,
-        background: "rgba(0,0,0,0.55)",
-        zIndex: 0,
-      }}
-    />
-
-    {/* контент поверх слоя */}
+    <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 0 }} />
     <div style={{ position: "relative", zIndex: 1 }}>
       <Hero />
       <div className="sp-4" />
@@ -203,7 +191,6 @@ const MissionsScreen: React.FC<{status:StatusLevel; plan:PlanKey;}> = ({status, 
     <div className="page pad fade-in">
       <div className="h2">Миссии</div>
       <div className="sp-3" />
-
       <div className="list">
         {MISSIONS.map((m) => {
           const locked = !canSee(m);
@@ -211,30 +198,14 @@ const MissionsScreen: React.FC<{status:StatusLevel; plan:PlanKey;}> = ({status, 
           const needStatus = `статус ${m.minStatus}`;
           return (
             <div className="card" key={m.id} style={{ position: "relative", overflow: "hidden" }}>
-              {/* Темнение и замок, если миссия недоступна */}
               {locked && (
-                <div
-                  aria-hidden
+                <div aria-hidden
                   style={{
-                    position: "absolute",
-                    inset: 0,
-                    background: "rgba(0,0,0,0.45)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    zIndex: 1
-                  }}
-                >
-                  <div
-                    className="row"
-                    style={{
-                      gap: 8,
-                      padding: "6px 10px",
-                      borderRadius: 10,
-                      background: "rgba(0,0,0,0.55)",
-                      border: "1px solid rgba(255,255,255,0.12)"
-                    }}
-                  >
+                    position: "absolute", inset: 0, background: "rgba(0,0,0,0.45)",
+                    display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1
+                  }}>
+                  <div className="row"
+                    style={{ gap: 8, padding: "6px 10px", borderRadius: 10, background: "rgba(0,0,0,0.55)", border: "1px solid rgba(255,255,255,0.12)" }}>
                     <Icon.Lock />
                     <span className="t-caption" style={{ color: "rgba(255,255,255,.9)" }}>
                       Требуется {needStatus} {needPlan}
@@ -242,7 +213,6 @@ const MissionsScreen: React.FC<{status:StatusLevel; plan:PlanKey;}> = ({status, 
                   </div>
                 </div>
               )}
-
               <div className="card-sec" style={{ opacity: locked ? 0.75 : 1 }}>
                 <div className="row-b">
                   <div className="h2" style={{ fontSize: 15 }}>{m.title}</div>
@@ -251,14 +221,11 @@ const MissionsScreen: React.FC<{status:StatusLevel; plan:PlanKey;}> = ({status, 
                 <div className="sp-2" />
                 <div className="t-body">Дедлайн: {m.deadline}</div>
                 <div className="t-body">Теги: {m.tags.join(", ")}</div>
-                <div className="t-body">
-                  Награды: {m.rewards.jetpoints} JP{m.rewards.cash ? ` + ${m.rewards.cash}` : ""}
-                </div>
+                <div className="t-body">Награды: {m.rewards.jetpoints} JP{m.rewards.cash ? ` + ${m.rewards.cash}` : ""}</div>
                 <div className="t-caption" style={{ marginTop: 6 }}>
                   Доступ: {needStatus}{m.requiredPlan ? ` + план ${m.requiredPlan}` : ""}
                 </div>
               </div>
-
               <div className="separator" />
               <div className="card-sec" style={{ display: "flex", justifyContent: "flex-end" }}>
                 <Button size="s" className={locked ? "btn-disabled" : ""} onClick={!locked ? () => alert("Отклик отправлен (демо)") : undefined}>
@@ -341,25 +308,14 @@ const JetlagHub: React.FC<{go:React.Dispatch<React.SetStateAction<Tab>>}> = ({go
       minHeight: "100vh",
     }}
   >
-    {/* тёмный полупрозрачный слой поверх фона */}
-    <div
-      style={{
-        position: "absolute",
-        inset: 0,
-        background: "rgba(0,0,0,0.55)",
-        zIndex: 0,
-      }}
-    />
-
-    {/* основной контент */}
+    <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 0 }} />
     <div style={{ position: "relative", zIndex: 1 }}>
       <div className="card">
         <div className="card-sec">
           <div className="t-caption">О нас</div>
           <div className="sp-2" />
           <div className="h2" style={{ fontSize: 18 }}>
-            Empowering talents to<br />
-            bring value through content
+            Empowering talents to<br />bring value through content
           </div>
         </div>
       </div>
@@ -394,7 +350,6 @@ const JetlagHub: React.FC<{go:React.Dispatch<React.SetStateAction<Tab>>}> = ({go
           { t: "Музыка", d: "Лейбл с крупнейшими артистами России и СНГ" },
           { t: "Спорт", d: "Скоро открытие" },
           { t: "Продукты", d: "Скоро запуск" },
-  
         ].map((p, i) => (
           <div className="card" key={i}>
             <div className="card-sec">
@@ -469,14 +424,14 @@ const JetlagHub: React.FC<{go:React.Dispatch<React.SetStateAction<Tab>>}> = ({go
 
 /** ── Root ─────────────────────────────────────────── */
 export default function App(){
-  useTelegramFullscreen(); // 👈 только это добавлено
+  useTelegramFullscreen(); // ⬅️ активируем фуллскрин при монтировании
 
   const [tab, setTab] = useState<Tab>("jetlag");
   const [status] = useState<StatusLevel>("WHITE");
   const [plan]   = useState<PlanKey>(null);
 
   return (
-    <>
+    <div className="app-root">
       <TopBar
         status={status}
         plan={plan}
@@ -491,6 +446,6 @@ export default function App(){
       {tab==="jetlag" && <JetlagHub go={setTab}/>}
 
       <BottomNav tab={tab} onChange={setTab}/>
-    </>
+    </div>
   );
 }

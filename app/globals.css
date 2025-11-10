@@ -105,3 +105,25 @@ html, body {
 @supports (height: 100svh) {
   :root { --tgvh: 100svh; }
 }
+/* === Telegram fullscreen helpers === */
+html, body {
+  height: 100dvh;               /* актуальная высота webview */
+  overscroll-behavior-y: none;  /* отключаем bounce/свайп-бэк внутри webview */
+  background: #000;             /* чёрный фон по умолчанию */
+}
+
+:root {
+  --safe-top: env(safe-area-inset-top);
+  --safe-bottom: env(safe-area-inset-bottom);
+}
+
+.app-root {
+  min-height: 100dvh;
+  padding-bottom: max(0px, var(--safe-bottom)); /* чтобы таббар не уезжал под хоум-индикатор */
+}
+
+/* небольшая подстраховка против «резинки» на iOS */
+body {
+  position: relative;
+  touch-action: manipulation;
+}

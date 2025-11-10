@@ -4,7 +4,6 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "FMT.JETLAG",
   description: "Mini app",
-  // ВАЖНО: никаких viewport или themeColor тут больше не указываем
 };
 
 export const viewport: Viewport = {
