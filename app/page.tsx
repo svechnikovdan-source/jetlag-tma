@@ -72,7 +72,7 @@ const MARKET: MarketItem[] = [
 const PEOPLE = [
   { id:"u1", name:"Арсений", role:"Основатель" },
   { id:"u2", name:"Даниил", role:"Нефтянник" },
-  { id:"u3", name:"Бадри", role:"Gruzin" },
+  { id:"u3", name:"Бадри", role:"Грузин" },
   { id:"u4", name:"9Mice", role:"Artist" },
   { id:"u5", name:"Kai Angel", role:"Музыкант" },
 ];
