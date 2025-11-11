@@ -1,8 +1,9 @@
 "use client";
 import React, { useMemo, useState } from "react";
+const WHITE_CHAT_URL = process.env.NEXT_PUBLIC_WHITE_CHAT || "https://t.me/jetlagchat";
 
 /** ── Types ───────────────────────────────────────── */
-type Tab = "home" | "missions" | "events" | "market" | "jetlag" | "profile";
+type Tab = "landing" | "home" | "missions" | "events" | "market" | "jetlag" | "profile";
 type StatusLevel = "WHITE" | "RED" | "BLACK";
 type PlanKey = "PLUS" | "PRO" | "STUDIO" | null;
 const rank = (s: StatusLevel) => (s === "WHITE" ? 1 : s === "RED" ? 2 : 3);
@@ -429,34 +430,78 @@ const JetlagHub: React.FC<{go:React.Dispatch<React.SetStateAction<Tab>>}> = ({go
   </div>
 );
 
-/** ── Профиль ─────────────────────────────────────── */
-const ProfileScreen: React.FC<{status:StatusLevel; plan:PlanKey; jetpoints:number; next:number; onSettings:()=>void;}> =
-({ status, plan, jetpoints, next, onSettings }) => {
-  const progress = Math.min(100, Math.round((jetpoints / next) * 100));
-  const ACTIVE = MISSIONS.slice(0, 2);
-  const ACH = [
-    { id:"a1", title:"Первый отклик", desc:"Отправил 1 заявку на миссию" },
-    { id:"a2", title:"100 JetPoints", desc:"Накопил 100 JP" },
-    { id:"a3", title:"Создатель", desc:"Опубликовал товар/услугу" },
-  ];
+/** ── Новый экран: Профиль (новый формат) ─────────── */
+const ProfileScreen: React.FC<{
+  status: StatusLevel;
+  plan: PlanKey;
+  jetpoints: number;
+  next: number;                  // оставим параметр, но он теперь не влияет на бар
+  onSettings: () => void;
+}> = ({ status, plan, jetpoints, onSettings }) => {
+  // данные профиля (потом подставим реальные из Telegram init-data)
+  const profile = {
+    username: "Привет, Даниил!",
+    city: "Москва",
+    role: "Дизайнер",
+  };
+
+  // логика статуса/прогресса
+  const RED_GOAL = 10_000;                       // переход на RED
+  const isBlack = status === "BLACK";
+  const pct = isBlack ? 1 : Math.min(1, Math.max(0, jetpoints / RED_GOAL));
+  const pctPercent = Math.round(pct * 100);
+
+  // цвет бейджа статуса
+  const statusColor =
+    status === "RED" ? "var(--red)" :
+    status === "BLACK" ? "var(--muted)" : "var(--text)";
+
   return (
     <div className="page pad fade-in">
+      {/* Хедер профиля */}
       <div className="card">
         <div className="card-sec">
           <div className="row-b">
-            <div className="h2">@username</div>
-            <Chip>{status}</Chip>
+            <div>
+              <div className="h2" style={{fontSize:20, lineHeight:1.15}}>
+                {profile.username}
+              </div>
+              <div className="t-caption" style={{marginTop:6}}>
+                {profile.city} • {profile.role}
+              </div>
+            </div>
+
+            <div style={{textAlign:"right"}}>
+              <div className="status-badge" style={{color:statusColor,borderColor:"rgba(255,255,255,.22)"}}>
+                {status}
+              </div>
+              <div className="t-caption" style={{marginTop:6}}>
+                Баланс: <b>{jetpoints.toLocaleString("ru-RU")}</b>
+              </div>
+            </div>
           </div>
-          <div className="t-caption" style={{marginTop:4}}>Москва · Дизайнер</div>
-          <div className="t-caption" style={{marginTop:4}}>Баланc: {jetpoints}</div>
-          <div className="progress"><div className="progress__bar" style={{ width: `${progress}%` }} /></div>
-          <div className="t-caption" style={{ marginTop: 6 }}>План: {plan ?? "нет плана"}</div>
+
+          {/* Прогресс-бар WHITE → RED → BLACK */}
+          <div className="sp-3" />
+          <div className="status-track">
+            <div className="status-track__bar" style={{width: `${pctPercent}%`}} />
+            {/* метки-точки */}
+            <span className="status-tick" style={{left:"0%"}} />
+            <span className="status-tick" style={{left:"100%"}} />
+          </div>
+          <div className="status-legend">
+            <div className="status-legend__item">WHITE</div>
+            <div className="status-legend__item">RED • 10 000</div>
+            <div className="status-legend__item">BLACK • ∞</div>
+          </div>
+
+          <div className="t-caption" style={{marginTop:6}}>
+            План: {plan ?? "нет плана"}
+          </div>
         </div>
       </div>
 
-      <div className="sp-3" />
-
-            {/* Достижения — горизонтальный скролл */}
+      {/* Достижения — горизонтальный скролл */}
       <div className="sp-3" />
       <div className="card">
         <div className="card-sec">
@@ -503,8 +548,8 @@ const ProfileScreen: React.FC<{status:StatusLevel; plan:PlanKey; jetpoints:numbe
         </div>
       </div>
 
+      {/* Активные задачи (как было) */}
       <div className="sp-3" />
-
       <div className="card">
         <div className="card-sec">
           <div className="h2">Задачи</div>
@@ -512,14 +557,16 @@ const ProfileScreen: React.FC<{status:StatusLevel; plan:PlanKey; jetpoints:numbe
         <div className="separator" />
         <div className="card-sec">
           <div className="list">
-            {ACTIVE.map(m=>(
+            {MISSIONS.slice(0, 2).map(m=>(
               <div className="card" key={m.id}>
                 <div className="card-sec">
                   <div className="row-b">
                     <div className="h2" style={{ fontSize: 15 }}>{m.title}</div>
                     <Chip>{m.brand}</Chip>
                   </div>
-                  <div className="t-caption" style={{ marginTop: 6 }}>Дедлайн: {m.deadline} · Теги: {m.tags.join(", ")}</div>
+                  <div className="t-caption" style={{ marginTop: 6 }}>
+                    Дедлайн: {m.deadline} · Теги: {m.tags.join(", ")}
+                  </div>
                 </div>
                 <div className="separator" />
                 <div className="card-sec" style={{ display:"flex", justifyContent:"flex-end" }}>
@@ -527,37 +574,105 @@ const ProfileScreen: React.FC<{status:StatusLevel; plan:PlanKey; jetpoints:numbe
                 </div>
               </div>
             ))}
+            {MISSIONS.length===0 && <div className="t-caption">Активных задач пока нет.</div>}
           </div>
         </div>
       </div>
     </div>
   );
 };
+const LandingScreen: React.FC<{onEnterHub:()=>void; onOpenWhite:()=>void}> = ({onEnterHub, onOpenWhite}) => (
+  <div
+    className="page fade-in"
+    style={{
+      minHeight: "100vh",
+      background: "black",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: 24
+    }}
+  >
+    <div style={{maxWidth: 520, width: "100%", textAlign: "center"}}>
+      {/* логотип/знак при желании */}
+      <div style={{fontSize: 18, letterSpacing: 2, color: "rgba(255,255,255,.7)"}}>FMT.JETLAG</div>
+      <div style={{height: 12}} />
+      <div style={{fontSize: 22, fontWeight: 700}}>Добро пожаловать в экосистему FMT.JETLAG</div>
+      <div style={{height: 28}} />
+
+      <div style={{display:"grid", gap: 10}}>
+        <button
+          className="btn"
+          onClick={onEnterHub}
+          style={{height: 48, fontSize: 15, fontWeight: 600}}
+        >
+          JETLAG HUB
+        </button>
+        <button
+          className="btn btn-sec"
+          onClick={onOpenWhite}
+          style={{height: 48, fontSize: 15, fontWeight: 600}}
+        >
+          JETLAG WHITE (Telegram)
+        </button>
+      </div>
+
+      {/* маленькая подпись */}
+      <div style={{marginTop: 18, fontSize: 12, opacity: .6}}>
+        Нажмите «JETLAG HUB», чтобы войти в мини-приложение
+      </div>
+    </div>
+  </div>
+);
 
 /** ── Root ─────────────────────────────────────────── */
 export default function App(){
-  const [tab, setTab] = useState<Tab>("home");
+  const [tab, setTab] = useState<Tab>("landing"); // ← стартуем со стартового экрана
   const [status] = useState<StatusLevel>("WHITE");
   const [plan]   = useState<PlanKey>(null);
   const jetpoints = 260;
 
+  const openWhite = () => {
+    try { window.open(WHITE_CHAT_URL, "_blank", "noopener,noreferrer"); }
+    catch { /* no-op */ }
+  };
+
   return (
     <>
-      <TopBar
-        status={status}
-        plan={plan}
-        onProfile={()=>setTab("profile")}
-        onSettings={()=>alert("Настройки (демо)")}
-      />
+      {/* НЕ показываем верхнюю панель на экране приветствия */}
+      {tab !== "landing" && (
+        <TopBar
+          status={status}
+          plan={plan}
+          onProfile={()=>setTab("profile")}
+          onSettings={()=>alert("Настройки (демо)")}
+        />
+      )}
 
-      {tab==="home" && <HomeScreen go={setTab} status={status} plan={plan}/>}
+      {/* Экраны */}
+      {tab==="landing" && (
+        <LandingScreen
+          onEnterHub={()=>setTab("jetlag")}
+          onOpenWhite={openWhite}
+        />
+      )}
+      {tab==="home" && <HomeScreen go={setTab}/>}
       {tab==="missions" && <MissionsScreen status={status} plan={plan}/>}
       {tab==="events" && <EventsScreen status={status} plan={plan}/>}
       {tab==="market" && <MarketScreen/>}
       {tab==="jetlag" && <JetlagHub go={setTab}/>}
-      {tab==="profile" && <ProfileScreen status={status} plan={plan} jetpoints={jetpoints} next={500} onSettings={()=>alert("Настройки (демо)")} />}
+      {tab==="profile" && (
+        <ProfileScreen
+          status={status}
+          plan={plan}
+          jetpoints={jetpoints}
+          next={500}
+          onSettings={()=>alert("Настройки (демо)")}
+        />
+      )}
 
-      <BottomNav tab={tab} onChange={setTab}/>
+      {/* НЕ показываем нижнюю панель на экране приветствия */}
+      {tab !== "landing" && <BottomNav tab={tab} onChange={setTab}/>}
     </>
   );
 }
