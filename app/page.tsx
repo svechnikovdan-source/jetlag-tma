@@ -82,7 +82,7 @@ const TopBar: React.FC<{
         className="row"
         onClick={onProfile}
         aria-label="Профиль"
-        style={{gap:8, background:"#1a1a1a", border:"none", borderRadius:10, height:28, padding:"0 12px", alignItems:"center"}}
+        style={{gap:8, background:"transparent", border:"none", borderRadius:10, height:28, padding:"0 12px", alignItems:"center",}}
       >
         <span className="ava" style={{width:22,height:22, borderRadius:8, background:"rgba(255,255,255,.15)", display:"flex", alignItems:"center", justifyContent:"center"}}><Icon.User/></span>
         <span style={{fontSize:12,fontWeight:600,color:"white"}}>Даниил</span>
@@ -124,8 +124,6 @@ const BottomNav: React.FC<{tab:Tab; onChange:React.Dispatch<React.SetStateAction
 const Hero: React.FC = () => (
   <div className="card">
     <div className="card-sec">
-      <div className="t-caption">О нас</div>
-      <div className="sp-2" />
       <div className="h2" style={{fontSize:18}}>Empowering talents to<br/>bring value through content</div>
     </div>
   </div>
@@ -152,7 +150,7 @@ const HomeScreen: React.FC<{go:React.Dispatch<React.SetStateAction<Tab>>}> = ({g
           { k: "missions" as Tab, t: "Миссии", d: "Выбирай задачи" },
           { k: "events" as Tab, t: "Афиша", d: "Митапы и турниры" },
           { k: "market" as Tab, t: "Маркет", d: "Услуги и товары" },
-          { k: "jetlag" as Tab, t: "О нас", d: "О нас, видео и продукты" },
+          { k: "jetlag" as Tab, t: "FMT.JETLAG", d: "Экосистема Джетлаг" },
         ].map((b) => (
           <div className="card" key={b.k}>
             <div className="card-sec">
