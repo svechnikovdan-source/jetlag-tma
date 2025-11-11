@@ -442,8 +442,8 @@ const ProfileScreen: React.FC<{
   const profile = {
     username: "Привет, Даниил!",
     city: "Москва",
-    role: "Дизайнер",
-  };
+    role: "Продюсер",
+};
 
   // логика статуса/прогресса
   const RED_GOAL = 10_000;                       // переход на RED
@@ -496,7 +496,6 @@ const ProfileScreen: React.FC<{
           </div>
 
           <div className="t-caption" style={{marginTop:6}}>
-            План: {plan ?? "нет плана"}
           </div>
         </div>
       </div>
@@ -511,29 +510,29 @@ const ProfileScreen: React.FC<{
           {/* список в одну строку со скроллом */}
           <div className="ach-scroll">
             {[
-              { id:"a1", title:"Первый отклик", icon:(
+              { id:"a1", icon:(
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M21 15v4a2 2 0 0 1-2 2H8l-4 3v-5H5" />
                   <path d="M17 9a4 4 0 1 1-8 0 4 4 0 0 1 8 0z"/>
                 </svg>
               )},
-              { id:"a2", title:"100 JetPoints", icon:(
+              { id:"a2", icon:(
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="12" cy="12" r="9"/>
                   <path d="M12 6v6l4 2"/>
                 </svg>
               )},
-              { id:"a3", title:"Создатель", icon:(
+              { id:"a3", icon:(
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M12 2l3 7h7l-5.6 4.1L19 21l-7-4.5L5 21l2.6-7.9L2 9h7z"/>
                 </svg>
               )},
-              { id:"a4", title:"Первая продажа", icon:(
+              { id:"a4", icon:(
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M6 6h15l-1.5 9a2 2 0 0 1-2 1.7H8.5L7 6z"/><circle cx="9" cy="21" r="1.5"/><circle cx="18" cy="21" r="1.5"/>
                 </svg>
               )},
-              { id:"a5", title:"5 событий", icon:(
+              { id:"a5", icon:(
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
                 </svg>
@@ -541,7 +540,6 @@ const ProfileScreen: React.FC<{
             ].map(a=>(
               <div className="ach" key={a.id}>
                 <div className="ach__icon">{a.icon}</div>
-                <div className="ach__txt">{a.title}</div>
               </div>
             ))}
           </div>
@@ -630,7 +628,7 @@ export default function App(){
   const [tab, setTab] = useState<Tab>("landing"); // ← стартуем со стартового экрана
   const [status] = useState<StatusLevel>("WHITE");
   const [plan]   = useState<PlanKey>(null);
-  const jetpoints = 260;
+  const jetpoints = 2540;
 
   const openWhite = () => {
     try { window.open(WHITE_CHAT_URL, "_blank", "noopener,noreferrer"); }
