@@ -656,7 +656,7 @@ export default function App(){
           onOpenWhite={openWhite}
         />
       )}
-      {tab==="home" && <HomeScreen go={setTab}/>}
+      {tab === 'home' && <HomeScreen go={setTab} status={status} plan={plan} />}
       {tab==="missions" && <MissionsScreen status={status} plan={plan}/>}
       {tab==="events" && <EventsScreen status={status} plan={plan}/>}
       {tab==="market" && <MarketScreen/>}
