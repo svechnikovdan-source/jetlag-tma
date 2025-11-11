@@ -15,8 +15,8 @@ const Icon = {
   Bag: () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M6 7h12l1 3v9H5V10l1-3z"/><path d="M9 7V6a3 3 0 0 1 6 0v1"/></svg>),
   Brand: () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="10.5" y="7" width="3" height="3" rx="0.5"/><rect x="10.5" y="14" width="3" height="3" rx="0.5"/></svg>),
   User: () => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="7.5" r="3.5"/><path d="M4 20a8 8 0 0 1 16 0"/></svg>),
-  Settings: () => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.6 1.6 0 0 0-1.82-.33A1.6 1.6 0 0 0 14 21a2 2 0 0 1-4 0 1.6 1.6 0 0 0-1-1.51 1.6 1.6 0 0 0-1.82.33l-.06.06A2 2 0 1 1 4.29 17.9l.06-.06A1.6 1.6 0 0 0 4 16.02 1.6 1.6 0 0 0 2.49 15H3a2 2 0 0 1 0-4h.09c.67 0 1.27-.39 1.51-1a1.6 1.6 0 0 0-.33-1.82l-.06-.06A2 2 0 1 1 7.04 4.29l.06.06c.5.5 1.2.66 1.82.33A1.6 1.6 0 0 0 10 3a2 2 0 0 1 4 0 1.6 1.6 0 0 0 1.08 1.6c.62.33 1.32.17 1.82-.33l.06-.06A2 2 0 1 1 21 7.04l-.06.06c.5.5.66 1.2.33 1.82.24.61.84 1 1.51 1H21a2 2 0 0 1 0 4h-.09a1.6 1.6 0 0 0-1.51 1z"/></svg>),
-  Temple: () => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 10l9-5 9 5"/><path d="M4 10v8M8 10v8M12 10v8M16 10в8M20 10v8M2 18h20"/></svg>),
+  Settings: () => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.6 1.6 0 0 0-1.82-.33A1.6 1.6 0 0 0 14 21a2 2 0 0 1-4 0 1.6 1.6 0 0 0-1-1.51 1.6 1.6 0 0 0-1.82.33l-.06.06A2 2 0 1 1 4.29 17.9l.06-.06A1.6 1.6 0 0 0 4 16.02 1.6 1.6 0 0 0 2.49 15H3a2 2 0 0 1 0-4h.09c.67 0 1.27-.39 1.51-1a1.6 1.6 0 0 0-.33-1.82l-.06-.06A2 2 0 1 1 7.04 4.29l.06.06c.5.5 1.2.66 1.82.33A1.6 1.6 0 0 0 10 3a2 2 0 0 1 4 0 1.6 1.6 0 0 0 1.08 1.6c.62.33 1.32.17 1.82-.33l.06-.06A2 2 0 1 1 21 7.04l-.06.06c-.5.5-.66 1.2-.33 1.82.24.61.84 1 1.51 1H21a2 2 0 0 1 0 4h-.09a1.6 1.6 0 0 0-1.51 1z"/></svg>),
+  Temple: () => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 10l9-5 9 5"/><path d="M4 10v8M8 10v8M12 10v8M16 10v8M20 10v8M2 18h20"/></svg>),
   Lock: () => (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <rect x="3" y="11" width="18" height="10" rx="2" /><path d="M7 11V8a5 5 0 0 1 10 0v3" />
@@ -28,6 +28,7 @@ const Icon = {
 type Mission = { id:string; brand:string; title:string; deadline:string; tags:string[]; rewards:{jetpoints:number; cash?:string}; minStatus:StatusLevel; requiredPlan:Exclude<PlanKey,null>|null; };
 type EventItem = { id:string; title:string; date:string; place:string; access:{minStatus:StatusLevel; plan:PlanKey}; price:number };
 type MarketItem = { id:string; type:"SERVICE"|"PRODUCT"; title:string; price:number; owner:string };
+type DailyItem = { id:string; title:string; tag:string; action?: string };
 
 const MISSIONS: Mission[] = [
   { id:"m1", brand:"FMT.JETLAG", title:"Рефреш айдентики для FMT.JETLAG Padel", deadline:"14.11.2025", tags:["design","branding"], rewards:{jetpoints:250, cash:"50 000 ₽"}, minStatus:"WHITE", requiredPlan:null },
@@ -51,9 +52,15 @@ const MARKET: MarketItem[] = [
 const PEOPLE = [
   { id:"u1", name:"Арсений", role:"Основатель" },
   { id:"u2", name:"Даниил", role:"Нефтянник" },
-  { id:"u3", name:"Бадри", role:"Грузин" },
-  { id:"u4", name:"9Mice", role:"Музыкант" },
+  { id:"u3", name:"Бадри", role:"Gruzin" },
+  { id:"u4", name:"9Mice", role:"Artist" },
   { id:"u5", name:"Kai Angel", role:"Музыкант" },
+];
+
+const DAILY: DailyItem[] = [
+  { id:"d1", title:"Протестируй 1 миссию и оставь фидбек", tag:"community" },
+  { id:"d2", title:"Сними короткий backstage 15–30 сек", tag:"ugc" },
+  { id:"d3", title:"Добавь 1 товар/услугу в маркет", tag:"market", action:"Опубликовать" },
 ];
 
 /** ── Primitives ───────────────────────────────────── */
@@ -82,7 +89,7 @@ const TopBar: React.FC<{
         className="row"
         onClick={onProfile}
         aria-label="Профиль"
-        style={{gap:8, background:"transparent", border:"none", borderRadius:10, height:28, padding:"0 12px", alignItems:"center",}}
+        style={{gap:8, background:"#1a1a1a", border:"none", borderRadius:10, height:28, padding:"0 12px", alignItems:"center"}}
       >
         <span className="ava" style={{width:22,height:22, borderRadius:8, background:"rgba(255,255,255,.15)", display:"flex", alignItems:"center", justifyContent:"center"}}><Icon.User/></span>
         <span style={{fontSize:12,fontWeight:600,color:"white"}}>Даниил</span>
@@ -129,43 +136,96 @@ const Hero: React.FC = () => (
   </div>
 );
 
-const HomeScreen: React.FC<{go:React.Dispatch<React.SetStateAction<Tab>>}> = ({go}) => (
-  <div
-    className="page pad fade-in"
-    style={{
-      position: "relative",
-      backgroundImage: 'url("/home-bg.jpg")',
-      backgroundSize: "cover",
-      backgroundPosition: "center",
-      backgroundRepeat: "no-repeat",
-      minHeight: "100vh",
-    }}
-  >
-    <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 0 }} />
-    <div style={{ position: "relative", zIndex: 1 }}>
-      <Hero />
-      <div className="sp-4" />
-      <div className="grid-2">
-        {[
-          { k: "missions" as Tab, t: "Миссии", d: "Выбирай задачи" },
-          { k: "events" as Tab, t: "Афиша", d: "Митапы и турниры" },
-          { k: "market" as Tab, t: "Маркет", d: "Услуги и товары" },
-          { k: "jetlag" as Tab, t: "FMT.JETLAG", d: "Экосистема Джетлаг" },
-        ].map((b) => (
-          <div className="card" key={b.k}>
-            <div className="card-sec">
-              <div className="row-b">
-                <div className="h2">{b.t}</div>
-                <Button kind="ghost" size="s" onClick={() => go(b.k)}>Открыть</Button>
+/** HOME: 2 блока — Миссии + Jetlag Daily */
+const HomeScreen: React.FC<{
+  go:React.Dispatch<React.SetStateAction<Tab>>;
+  status: StatusLevel; plan: PlanKey;
+}> = ({go, status, plan}) => {
+  const canSee = (m: Mission) =>
+    rank(status) >= rank(m.minStatus) && (!m.requiredPlan || plan === m.requiredPlan);
+
+  return (
+    <div
+      className="page pad fade-in"
+      style={{
+        position: "relative",
+        backgroundImage: 'url("/home-bg.jpg")',
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+        minHeight: "100vh",
+      }}
+    >
+      <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 0 }} />
+      <div style={{ position: "relative", zIndex: 1 }}>
+        <Hero />
+
+        {/* Блок: Миссии */}
+        <div className="sp-4" />
+        <div className="row-b">
+          <div className="h2">Миссии</div>
+          <Button kind="ghost" size="s" onClick={()=>go("missions")}>Открыть все</Button>
+        </div>
+        <div className="sp-2" />
+        <div className="list">
+          {MISSIONS.map(m=>{
+            const locked = !canSee(m);
+            return (
+              <div className="card" key={m.id} style={{position:"relative", overflow:"hidden"}}>
+                {locked && (
+                  <div aria-hidden style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:1 }}>
+                    <div className="row" style={{ gap: 8, padding: "6px 10px", borderRadius: 10, background: "rgba(0,0,0,0.55)", border: "1px solid rgba(255,255,255,0.12)" }}>
+                      <Icon.Lock />
+                      <span className="t-caption" style={{ color: "rgba(255,255,255,.9)" }}>Недоступно</span>
+                    </div>
+                  </div>
+                )}
+                <div className="card-sec" style={{opacity:locked?0.78:1}}>
+                  <div className="row-b">
+                    <div className="h2" style={{fontSize:15}}>{m.title}</div>
+                    <Chip>{m.brand}</Chip>
+                  </div>
+                  <div className="t-caption" style={{marginTop:6}}>
+                    Дедлайн: {m.deadline} · {m.rewards.jetpoints} JP{m.rewards.cash?` + ${m.rewards.cash}`:""}
+                  </div>
+                </div>
+                <div className="separator" />
+                <div className="card-sec" style={{display:"flex", justifyContent:"flex-end"}}>
+                  <Button size="s" className={locked?"btn-disabled":""} onClick={!locked?()=>go("missions"):undefined}>
+                    Участвовать
+                  </Button>
+                </div>
               </div>
-              <div className="t-body" style={{ marginTop: 6 }}>{b.d}</div>
+            );
+          })}
+        </div>
+
+        {/* Блок: Jetlag Daily */}
+        <div className="sp-4" />
+        <div className="row-b">
+          <div className="h2">Jetlag Daily</div>
+          <Button kind="ghost" size="s" onClick={()=>alert("Скоро — полноценная лента Daily")}>Подробнее</Button>
+        </div>
+        <div className="sp-2" />
+        <div className="list">
+          {DAILY.map(d=>(
+            <div className="card" key={d.id} style={{background:"rgba(255,255,255,.05)"}}>
+              <div className="card-sec row-b">
+                <div>
+                  <div className="h2" style={{fontSize:14}}>{d.title}</div>
+                  <div className="t-caption" style={{marginTop:4}}>#{d.tag}</div>
+                </div>
+                {d.action && <Button kind="secondary" size="s" onClick={()=>alert(`${d.action} (демо)`)}>
+                  {d.action}
+                </Button>}
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 const MissionsScreen: React.FC<{status:StatusLevel; plan:PlanKey;}> = ({status, plan}) => {
   const canSee = (m: Mission) =>
@@ -295,24 +355,37 @@ const JetlagHub: React.FC<{go:React.Dispatch<React.SetStateAction<Tab>>}> = ({go
 
       <div className="sp-4" />
 
-      <div className="h2" style={{ marginBottom: 8 }}>Экосистема FMT.JETLAG</div>
+      <div className="card">
+        <div className="card-sec">
+          <div className="row-b">
+            <div className="row" style={{ gap: 10 }}>
+              <span className="ava" style={{ width: 28, height: 28, borderRadius: 8 }}>
+                <Icon.Temple />
+              </span>
+              <div className="h2">Усадьба JETLAG</div>
+            </div>
+            <Button kind="secondary" size="s" onClick={() => alert("3D-тур (демо)")}>Открыть 3D-тур</Button>
+          </div>
+          <div className="t-body" style={{ marginTop: 6 }}>Кампус для резиденций, съёмок и встреч сообщества.</div>
+        </div>
+      </div>
 
-      {/* тут задаём флаг cta для каждой карточки */}
+      <div className="sp-4" />
+
+      <div className="h2" style={{ marginBottom: 8 }}>Экосистема FMT.JETLAG</div>
       <div className="grid-2">
         {[
-          { t: "Контент",     d: "Создаем контент для главных брендов мира", cta: true  },
-          { t: "Музыка",      d: "Лейбл с крупнейшими артистами России и СНГ",         cta: true  },
-          { t: "Образование", d: "Магистратура и бакалавр",             cta: true  },
-          { t: "Усадьба",     d: "Резиденция FMT.JETLAG",                               cta: true  },
-          { t: "Спорт",       d: "Скоро открытие",                                      cta: false }, // ← без кнопки
-          { t: "Продукты",    d: "Скоро запуск",                                        cta: false }, // ← без кнопки
+          { t: "Продакшн", d: "Создаем контент для главных брендов мира" },
+          { t: "Музыка", d: "Лейбл с крупнейшими артистами России и СНГ" },
+          { t: "Спорт", d: "Скоро открытие" },
+          { t: "Продукты", d: "Скоро запуск" },
         ].map((p, i) => (
           <div className="card" key={i}>
             <div className="card-sec">
               <div className="h2">{p.t}</div>
               <div className="t-body" style={{ marginTop: 4 }}>{p.d}</div>
               <div className="sp-3" />
-              {p.cta && <Button kind="secondary" size="s">Подробнее</Button>}
+              <Button kind="secondary" size="s">Подробнее</Button>
             </div>
           </div>
         ))}
@@ -370,127 +443,54 @@ const JetlagHub: React.FC<{go:React.Dispatch<React.SetStateAction<Tab>>}> = ({go
   </div>
 );
 
-/** ── Новый экран: Профиль (новый формат) ─────────── */
-const ProfileScreen: React.FC<{
-  status: StatusLevel;
-  plan: PlanKey;
-  jetpoints: number;
-  next: number;                  // оставим параметр, но он теперь не влияет на бар
-  onSettings: () => void;
-}> = ({ status, plan, jetpoints, onSettings }) => {
-  // данные профиля (потом подставим реальные из Telegram init-data)
-  const profile = {
-    username: "Привет, Даниил",
-    city: "Москва",
-    role: "Продюссер",
-  };
-
-  // логика статуса/прогресса
-  const RED_GOAL = 10_000;                       // переход на RED
-  const isBlack = status === "BLACK";
-  const pct = isBlack ? 1 : Math.min(1, Math.max(0, jetpoints / RED_GOAL));
-  const pctPercent = Math.round(pct * 100);
-
-  // цвет бейджа статуса
-  const statusColor =
-    status === "RED" ? "var(--red)" :
-    status === "BLACK" ? "var(--muted)" : "var(--text)";
-
+/** ── Профиль ─────────────────────────────────────── */
+const ProfileScreen: React.FC<{status:StatusLevel; plan:PlanKey; jetpoints:number; next:number; onSettings:()=>void;}> =
+({ status, plan, jetpoints, next, onSettings }) => {
+  const progress = Math.min(100, Math.round((jetpoints / next) * 100));
+  const ACTIVE = MISSIONS.slice(0, 2);
+  const ACH = [
+    { id:"a1", title:"Первый отклик", desc:"Отправил 1 заявку на миссию" },
+    { id:"a2", title:"100 JetPoints", desc:"Накопил 100 JP" },
+    { id:"a3", title:"Создатель", desc:"Опубликовал товар/услугу" },
+  ];
   return (
     <div className="page pad fade-in">
-      {/* Хедер профиля */}
       <div className="card">
         <div className="card-sec">
           <div className="row-b">
-            <div>
-              <div className="h2" style={{fontSize:16, lineHeight:1.15}}>
-                {profile.username}
-              </div>
-              <div className="t-caption" style={{marginTop:6}}>
-                {profile.city} • {profile.role}
-              </div>
-            </div>
-
-            <div style={{textAlign:"right"}}>
-              <div className="status-badge" style={{color:statusColor,borderColor:"rgba(255,255,255,.22)"}}>
-                {status}
-              </div>
-              <div className="t-caption" style={{marginTop:6}}>
-                Баланс: <b>{jetpoints.toLocaleString("ru-RU")}</b>
-              </div>
-            </div>
+            <div className="h2">@username</div>
+            <Chip>{status}</Chip>
           </div>
-
-          {/* Прогресс-бар WHITE → RED → BLACK */}
-          <div className="sp-3" />
-          <div className="status-track">
-            <div className="status-track__bar" style={{width: `${pctPercent}%`}} />
-            {/* метки-точки */}
-            <span className="status-tick" style={{left:"0%"}} />
-            <span className="status-tick" style={{left:"100%"}} />
-          </div>
-          <div className="status-legend">
-            <div className="status-legend__item">WHITE</div>
-            <div className="status-legend__item">RED • 10 000</div>
-            <div className="status-legend__item">BLACK • ∞</div>
-          </div>
-
-          <div className="t-caption" style={{marginTop:6}}>
-      
-          </div>
+          <div className="t-caption" style={{marginTop:4}}>Москва · Дизайнер</div>
+          <div className="t-caption" style={{marginTop:4}}>Баланc: {jetpoints}</div>
+          <div className="progress"><div className="progress__bar" style={{ width: `${progress}%` }} /></div>
+          <div className="t-caption" style={{ marginTop: 6 }}>План: {plan ?? "нет плана"}</div>
         </div>
       </div>
 
-            {/* Достижения — горизонтальный скролл */}
       <div className="sp-3" />
+
       <div className="card">
         <div className="card-sec">
           <div className="h2">Достижения</div>
-          <div className="sp-2" />
-
-          {/* список в одну строку со скроллом */}
-          <div className="ach-scroll">
-            {[
-              { id:"a1", title:"Первый отклик", icon:(
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H8l-4 3v-5H5" />
-                  <path d="M17 9a4 4 0 1 1-8 0 4 4 0 0 1 8 0z"/>
-                </svg>
-              )},
-              { id:"a2", title:"100 JetPoints", icon:(
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="9"/>
-                  <path d="M12 6v6l4 2"/>
-                </svg>
-              )},
-              { id:"a3", title:"Создатель", icon:(
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 2l3 7h7l-5.6 4.1L19 21l-7-4.5L5 21l2.6-7.9L2 9h7z"/>
-                </svg>
-              )},
-              { id:"a4", title:"Первая продажа", icon:(
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M6 6h15l-1.5 9a2 2 0 0 1-2 1.7H8.5L7 6z"/><circle cx="9" cy="21" r="1.5"/><circle cx="18" cy="21" r="1.5"/>
-                </svg>
-              )},
-              { id:"a5", title:"5 событий", icon:(
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
-                </svg>
-              )},
-            ].map(a=>(
-              <div className="ach" key={a.id}>
-                <div className="ach__icon">{a.icon}</div>
-                <div className="ach__txt">{a.title}</div>
+        </div>
+        <div className="separator" />
+        <div className="card-sec">
+          <div className="list">
+            {ACH.map(a=>(
+              <div className="card" key={a.id} style={{ background:"rgba(255,255,255,.05)" }}>
+                <div className="card-sec">
+                  <div className="h2" style={{ fontSize: 14 }}>{a.title}</div>
+                  <div className="t-caption" style={{ marginTop: 4 }}>{a.desc}</div>
+                </div>
               </div>
             ))}
           </div>
         </div>
       </div>
 
-
-      {/* Активные задачи (как было) */}
       <div className="sp-3" />
+
       <div className="card">
         <div className="card-sec">
           <div className="h2">Задачи</div>
@@ -498,16 +498,14 @@ const ProfileScreen: React.FC<{
         <div className="separator" />
         <div className="card-sec">
           <div className="list">
-            {MISSIONS.slice(0, 2).map(m=>(
+            {ACTIVE.map(m=>(
               <div className="card" key={m.id}>
                 <div className="card-sec">
                   <div className="row-b">
                     <div className="h2" style={{ fontSize: 15 }}>{m.title}</div>
                     <Chip>{m.brand}</Chip>
                   </div>
-                  <div className="t-caption" style={{ marginTop: 6 }}>
-                    Дедлайн: {m.deadline} · Теги: {m.tags.join(", ")}
-                  </div>
+                  <div className="t-caption" style={{ marginTop: 6 }}>Дедлайн: {m.deadline} · Теги: {m.tags.join(", ")}</div>
                 </div>
                 <div className="separator" />
                 <div className="card-sec" style={{ display:"flex", justifyContent:"flex-end" }}>
@@ -515,7 +513,6 @@ const ProfileScreen: React.FC<{
                 </div>
               </div>
             ))}
-            {MISSIONS.length===0 && <div className="t-caption">Активных задач пока нет.</div>}
           </div>
         </div>
       </div>
@@ -525,10 +522,10 @@ const ProfileScreen: React.FC<{
 
 /** ── Root ─────────────────────────────────────────── */
 export default function App(){
-  const [tab, setTab] = useState<Tab>("profile");
+  const [tab, setTab] = useState<Tab>("home");
   const [status] = useState<StatusLevel>("WHITE");
   const [plan]   = useState<PlanKey>(null);
-  const jetpoints = 2000;
+  const jetpoints = 260;
 
   return (
     <>
@@ -539,7 +536,7 @@ export default function App(){
         onSettings={()=>alert("Настройки (демо)")}
       />
 
-      {tab==="home" && <HomeScreen go={setTab}/>}
+      {tab==="home" && <HomeScreen go={setTab} status={status} plan={plan}/>}
       {tab==="missions" && <MissionsScreen status={status} plan={plan}/>}
       {tab==="events" && <EventsScreen status={status} plan={plan}/>}
       {tab==="market" && <MarketScreen/>}
