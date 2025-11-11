@@ -89,7 +89,7 @@ const TopBar: React.FC<{
         className="row"
         onClick={onProfile}
         aria-label="Профиль"
-        style={{gap:8, background:"#1a1a1a", border:"none", borderRadius:10, height:28, padding:"0 12px", alignItems:"center"}}
+        style={{gap:8, background:"transparent", border:"none", borderRadius:10, height:28, padding:"0 12px", alignItems:"center"}}
       >
         <span className="ava" style={{width:22,height:22, borderRadius:8, background:"rgba(255,255,255,.15)", display:"flex", alignItems:"center", justifyContent:"center"}}><Icon.User/></span>
         <span style={{fontSize:12,fontWeight:600,color:"white"}}>Даниил</span>
@@ -355,37 +355,24 @@ const JetlagHub: React.FC<{go:React.Dispatch<React.SetStateAction<Tab>>}> = ({go
 
       <div className="sp-4" />
 
-      <div className="card">
-        <div className="card-sec">
-          <div className="row-b">
-            <div className="row" style={{ gap: 10 }}>
-              <span className="ava" style={{ width: 28, height: 28, borderRadius: 8 }}>
-                <Icon.Temple />
-              </span>
-              <div className="h2">Усадьба JETLAG</div>
-            </div>
-            <Button kind="secondary" size="s" onClick={() => alert("3D-тур (демо)")}>Открыть 3D-тур</Button>
-          </div>
-          <div className="t-body" style={{ marginTop: 6 }}>Кампус для резиденций, съёмок и встреч сообщества.</div>
-        </div>
-      </div>
-
-      <div className="sp-4" />
-
       <div className="h2" style={{ marginBottom: 8 }}>Экосистема FMT.JETLAG</div>
+
+      {/* тут задаём флаг cta для каждой карточки */}
       <div className="grid-2">
         {[
-          { t: "Продакшн", d: "Создаем контент для главных брендов мира" },
-          { t: "Музыка", d: "Лейбл с крупнейшими артистами России и СНГ" },
-          { t: "Спорт", d: "Скоро открытие" },
-          { t: "Продукты", d: "Скоро запуск" },
+          { t: "Контент",     d: "Создаем контент для главных брендов мира", cta: true  },
+          { t: "Музыка",      d: "Лейбл с крупнейшими артистами России и СНГ",         cta: true  },
+          { t: "Образование", d: "Магистратура и бакалавр",             cta: true  },
+          { t: "Усадьба",     d: "Резиденция FMT.JETLAG",                               cta: true  },
+          { t: "Спорт",       d: "Скоро открытие",                                      cta: false }, // ← без кнопки
+          { t: "Продукты",    d: "Скоро запуск",                                        cta: false }, // ← без кнопки
         ].map((p, i) => (
           <div className="card" key={i}>
             <div className="card-sec">
               <div className="h2">{p.t}</div>
               <div className="t-body" style={{ marginTop: 4 }}>{p.d}</div>
               <div className="sp-3" />
-              <Button kind="secondary" size="s">Подробнее</Button>
+              {p.cta && <Button kind="secondary" size="s">Подробнее</Button>}
             </div>
           </div>
         ))}
