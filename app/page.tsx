@@ -595,7 +595,7 @@ const LandingScreen: React.FC<{onEnterHub:()=>void; onOpenWhite:()=>void}> = ({o
   >
     <div style={{maxWidth: 520, width: "100%", textAlign: "center"}}>
       {/* логотип/знак при желании */}
-      <div style={{fontSize: 18, letterSpacing: 2, color: "rgba(255,255,255,.7)"}}>FMT.JETLAG</div>
+
       <div style={{height: 12}} />
       <div style={{fontSize: 22, fontWeight: 700}}>Добро пожаловать в экосистему FMT.JETLAG</div>
       <div style={{height: 28}} />
@@ -648,11 +648,19 @@ export default function App(){
           onSettings={()=>alert("Настройки (демо)")}
         />
       )}
-
+      {/* НЕ показываем верхнюю панель на экране приветствия */}
+      {tab !== "profile" && (
+        <TopBar
+          status={status}
+          plan={plan}
+          onProfile={()=>setTab("profile")}
+          onSettings={()=>alert("Настройки (демо)")}
+        />
+      )}
       {/* Экраны */}
       {tab==="landing" && (
         <LandingScreen
-          onEnterHub={()=>setTab("jetlag")}
+          onEnterHub={()=>setTab("profile")}
           onOpenWhite={openWhite}
         />
       )}
@@ -662,6 +670,8 @@ export default function App(){
       {tab==="market" && <MarketScreen/>}
       {tab==="jetlag" && <JetlagHub go={setTab}/>}
       {tab==="profile" && (
+        
+        
         <ProfileScreen
           status={status}
           plan={plan}
