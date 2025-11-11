@@ -385,57 +385,127 @@ const JetlagHub: React.FC<{go:React.Dispatch<React.SetStateAction<Tab>>}> = ({go
   </div>
 );
 
-/** ── Новый экран: Профиль ─────────────────────────── */
-const ProfileScreen: React.FC<{status:StatusLevel; plan:PlanKey; jetpoints:number; next:number; onSettings:()=>void;}> =
-({ status, plan, jetpoints, next, onSettings }) => {
-  const progress = Math.min(100, Math.round((jetpoints / next) * 100));
-  const ACTIVE = MISSIONS.slice(0, 2);
-  const ACH = [
-    { id:"a1", title:"Первый отклик", desc:"Отправил 1 заявку на миссию" },
-    { id:"a2", title:"100 JetPoints", desc:"Накопил 100 JP" },
-    { id:"a3", title:"Создатель", desc:"Опубликовал товар/услугу" },
-  ];
+/** ── Новый экран: Профиль (новый формат) ─────────── */
+const ProfileScreen: React.FC<{
+  status: StatusLevel;
+  plan: PlanKey;
+  jetpoints: number;
+  next: number;                  // оставим параметр, но он теперь не влияет на бар
+  onSettings: () => void;
+}> = ({ status, plan, jetpoints, onSettings }) => {
+  // данные профиля (потом подставим реальные из Telegram init-data)
+  const profile = {
+    username: "Привет, Даниил",
+    city: "Москва",
+    role: "Продюссер",
+  };
+
+  // логика статуса/прогресса
+  const RED_GOAL = 10_000;                       // переход на RED
+  const isBlack = status === "BLACK";
+  const pct = isBlack ? 1 : Math.min(1, Math.max(0, jetpoints / RED_GOAL));
+  const pctPercent = Math.round(pct * 100);
+
+  // цвет бейджа статуса
+  const statusColor =
+    status === "RED" ? "var(--red)" :
+    status === "BLACK" ? "var(--muted)" : "var(--text)";
+
   return (
     <div className="page pad fade-in">
-      {/* Цифровой паспорт */}
+      {/* Хедер профиля */}
       <div className="card">
         <div className="card-sec">
           <div className="row-b">
-            <div className="h2">Цифровой паспорт</div>
-            <Button kind="ghost" size="s" onClick={onSettings}>Настройки</Button>
+            <div>
+              <div className="h2" style={{fontSize:16, lineHeight:1.15}}>
+                {profile.username}
+              </div>
+              <div className="t-caption" style={{marginTop:6}}>
+                {profile.city} • {profile.role}
+              </div>
+            </div>
+
+            <div style={{textAlign:"right"}}>
+              <div className="status-badge" style={{color:statusColor,borderColor:"rgba(255,255,255,.22)"}}>
+                {status}
+              </div>
+              <div className="t-caption" style={{marginTop:6}}>
+                Баланс: <b>{jetpoints.toLocaleString("ru-RU")}</b>
+              </div>
+            </div>
           </div>
-          <div className="sp-2" />
-          <div className="t-body">JetPoints: <b>{jetpoints}</b> / {next}</div>
-          <div className="progress"><div className="progress__bar" style={{ width: `${progress}%` }} /></div>
-          <div className="t-caption" style={{ marginTop: 6 }}>Статус: {status} · План: {plan ?? "нет плана"}</div>
+
+          {/* Прогресс-бар WHITE → RED → BLACK */}
+          <div className="sp-3" />
+          <div className="status-track">
+            <div className="status-track__bar" style={{width: `${pctPercent}%`}} />
+            {/* метки-точки */}
+            <span className="status-tick" style={{left:"0%"}} />
+            <span className="status-tick" style={{left:"100%"}} />
+          </div>
+          <div className="status-legend">
+            <div className="status-legend__item">WHITE</div>
+            <div className="status-legend__item">RED • 10 000</div>
+            <div className="status-legend__item">BLACK • ∞</div>
+          </div>
+
+          <div className="t-caption" style={{marginTop:6}}>
+      
+          </div>
         </div>
       </div>
 
+            {/* Достижения — горизонтальный скролл */}
       <div className="sp-3" />
-
-      {/* Достижения */}
       <div className="card">
         <div className="card-sec">
           <div className="h2">Достижения</div>
-        </div>
-        <div className="separator" />
-        <div className="card-sec">
-          <div className="list">
-            {ACH.map(a=>(
-              <div className="card" key={a.id} style={{ background:"rgba(255,255,255,.05)" }}>
-                <div className="card-sec">
-                  <div className="h2" style={{ fontSize: 14 }}>{a.title}</div>
-                  <div className="t-caption" style={{ marginTop: 4 }}>{a.desc}</div>
-                </div>
+          <div className="sp-2" />
+
+          {/* список в одну строку со скроллом */}
+          <div className="ach-scroll">
+            {[
+              { id:"a1", title:"Первый отклик", icon:(
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H8l-4 3v-5H5" />
+                  <path d="M17 9a4 4 0 1 1-8 0 4 4 0 0 1 8 0z"/>
+                </svg>
+              )},
+              { id:"a2", title:"100 JetPoints", icon:(
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="9"/>
+                  <path d="M12 6v6l4 2"/>
+                </svg>
+              )},
+              { id:"a3", title:"Создатель", icon:(
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 2l3 7h7l-5.6 4.1L19 21l-7-4.5L5 21l2.6-7.9L2 9h7z"/>
+                </svg>
+              )},
+              { id:"a4", title:"Первая продажа", icon:(
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M6 6h15l-1.5 9a2 2 0 0 1-2 1.7H8.5L7 6z"/><circle cx="9" cy="21" r="1.5"/><circle cx="18" cy="21" r="1.5"/>
+                </svg>
+              )},
+              { id:"a5", title:"5 событий", icon:(
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
+                </svg>
+              )},
+            ].map(a=>(
+              <div className="ach" key={a.id}>
+                <div className="ach__icon">{a.icon}</div>
+                <div className="ach__txt">{a.title}</div>
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      <div className="sp-3" />
 
-      {/* Задачи */}
+      {/* Активные задачи (как было) */}
+      <div className="sp-3" />
       <div className="card">
         <div className="card-sec">
           <div className="h2">Задачи</div>
@@ -443,14 +513,16 @@ const ProfileScreen: React.FC<{status:StatusLevel; plan:PlanKey; jetpoints:numbe
         <div className="separator" />
         <div className="card-sec">
           <div className="list">
-            {ACTIVE.map(m=>(
+            {MISSIONS.slice(0, 2).map(m=>(
               <div className="card" key={m.id}>
                 <div className="card-sec">
                   <div className="row-b">
                     <div className="h2" style={{ fontSize: 15 }}>{m.title}</div>
                     <Chip>{m.brand}</Chip>
                   </div>
-                  <div className="t-caption" style={{ marginTop: 6 }}>Дедлайн: {m.deadline} · Теги: {m.tags.join(", ")}</div>
+                  <div className="t-caption" style={{ marginTop: 6 }}>
+                    Дедлайн: {m.deadline} · Теги: {m.tags.join(", ")}
+                  </div>
                 </div>
                 <div className="separator" />
                 <div className="card-sec" style={{ display:"flex", justifyContent:"flex-end" }}>
@@ -458,7 +530,7 @@ const ProfileScreen: React.FC<{status:StatusLevel; plan:PlanKey; jetpoints:numbe
                 </div>
               </div>
             ))}
-            {ACTIVE.length===0 && <div className="t-caption">Активных задач пока нет.</div>}
+            {MISSIONS.length===0 && <div className="t-caption">Активных задач пока нет.</div>}
           </div>
         </div>
       </div>
@@ -468,10 +540,10 @@ const ProfileScreen: React.FC<{status:StatusLevel; plan:PlanKey; jetpoints:numbe
 
 /** ── Root ─────────────────────────────────────────── */
 export default function App(){
-  const [tab, setTab] = useState<Tab>("jetlag");
+  const [tab, setTab] = useState<Tab>("home");
   const [status] = useState<StatusLevel>("WHITE");
   const [plan]   = useState<PlanKey>(null);
-  const jetpoints = 260;
+  const jetpoints = 2000;
 
   return (
     <>
