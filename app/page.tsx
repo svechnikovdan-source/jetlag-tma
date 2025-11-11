@@ -20,6 +20,16 @@ const planRank = (p: Exclude<PlanKey, null>) => (p === "PLUS" ? 1 : p === "PRO" 
 const hasPlan = (user: PlanKey, need: Exclude<PlanKey, null> | null) =>
   !need || (!!user && planRank(user as Exclude<PlanKey, null>) >= planRank(need));
 
+/** Пороговые значения для прогресса статусов */
+const LEVELS: Record<StatusLevel, { next: StatusLevel | null; need: number | null }> = {
+  WHITE: { next: "RED",   need: 10_000 },
+  RED:   { next: "BLACK", need: 100_000 },
+  BLACK: { next: null,    need: null },
+};
+
+/** Форматирование денег */
+const money = (n: number) =>
+  new Intl.NumberFormat("ru-RU", { style: "currency", currency: "RUB", maximumFractionDigits: 0 }).format(n);
 
 /** ── Inline icons ────────────────────────────────── */
 const Icon = {
@@ -60,7 +70,7 @@ const Icon = {
   ),
   Lock: () => (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V8a5 5 0 0 1 10 0v3"/>
+      <rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V8a5 5 0 0 1 10 0в3"/>
     </svg>
   ),
 };
@@ -80,6 +90,23 @@ type EventItem = {
 type MarketItem = { id: string; type: "SERVICE" | "PRODUCT"; title: string; price: number; owner: string };
 type DailyItem = { id: string; title: string; tag: string; action?: string };
 
+/** ── FUND: деньги из подписок ─────────────────────── */
+type FundAllocation = { id: string; title: string; amount: number; note?: string; link?: string };
+const FUND = {
+  total: 2_450_000,                        // ← общая сумма фонда (RUB)
+  updatedAt: "11.11.2025",                // ← дата обновления
+  allocations: [
+    { id: "fa1", title: "Jetlag Padel — запуск", amount: 900_000, note: "инвентарь, 3D и рендеры" },
+    { id: "fa2", title: "Jetlag Film — постпродакшн", amount: 620_000, note: "графика и озвучание" },
+    { id: "fa3", title: "Waterr — упаковка и тест-партия", amount: 380_000 },
+    { id: "fa4", title: "Bluora — формулы v2 и формы", amount: 250_000 },
+    { id: "fa5", title: "Jetlag Estate — прототип AR-тура", amount: 160_000 },
+  ] as FundAllocation[],
+};
+const allocatedSum = FUND.allocations.reduce((s, a) => s + a.amount, 0);
+const reservedRest = Math.max(FUND.total - allocatedSum, 0);
+
+/** ── Static demo content ─────────────────────────── */
 const MISSIONS: Mission[] = [
   { id:"m1", brand:"FMT.JETLAG", title:"Рефреш айдентики для FMT.JETLAG Padel", deadline:"14.11.2025", tags:["design","branding"], rewards:{jetpoints:250, cash:"50 000 ₽"}, minStatus:"WHITE", requiredPlan:null },
   { id:"m2", brand:"Косметика", title:"UGC-кампания: Travel-skin ритуалы", deadline:"21.11.2025", tags:["video","ugc"], rewards:{jetpoints:150, cash:"по результату"}, minStatus:"WHITE", requiredPlan:"PLUS" },
@@ -183,15 +210,65 @@ const Hero: React.FC = () => (
   <div className="card"><div className="card-sec"><div className="h2" style={{ fontSize:18 }}>Empowering talents to<br/>bring value through content</div></div></div>
 );
 
+/** ── FUND CARD (на главной) ──────────────────────── */
+const FundCard: React.FC = () => {
+  const total = FUND.total;
+  const items = [...FUND.allocations, { id: "rest", title: "Резерв фонда", amount: reservedRest, note: "не распределено" }];
+  const calcPct = (amount: number) => (total > 0 ? Math.round((amount / total) * 100) : 0);
+
+  return (
+    <div className="card" role="region" aria-label="Фонд FMT.JETLAG: баланс и распределение">
+      <div className="card-sec">
+        <div className="row-b">
+          <div className="h2">Фонд</div>
+          <div className="t-caption">Обновлено: {FUND.updatedAt}</div>
+        </div>
+        <div className="sp-1" />
+        <div className="row-b" style={{ alignItems:"baseline" }}>
+          <div className="h2" style={{ fontSize:22 }}>{money(total)}</div>
+          <div className="t-caption">Всего собранно из подписок</div>
+        </div>
+      </div>
+      <div className="separator" />
+      <div className="card-sec" style={{ display:"grid", gap:12 }}>
+        {items.map((a) => {
+          const pct = calcPct(a.amount);
+          return (
+            <div key={a.id}>
+              <div className="row-b" style={{ gap:10 }}>
+                <div className="t-body">{a.title}{a.note ? ` — ${a.note}` : ""}</div>
+                <div className="t-caption">{money(a.amount)} • {pct}%</div>
+              </div>
+              <div className="bar" aria-hidden style={{ position:"relative", height:8, background:"rgba(255,255,255,.08)", borderRadius:999, overflow:"hidden", marginTop:6 }}>
+                <div style={{ width:`${pct}%`, height:"100%", background:"rgba(255,255,255,.45)" }} />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <div className="separator" />
+      <div className="card-sec row-b">
+        <div className="t-caption">Полн. прозрачность: ежемесячные отчёты</div>
+        <Button kind="secondary" size="s" onClick={() => alert("Страница прозрачности (демо)")}>Подробнее</Button>
+      </div>
+    </div>
+  );
+};
+
 const HomeScreen: React.FC<{ go: React.Dispatch<React.SetStateAction<Tab>>; status: StatusLevel; plan: PlanKey; }> =
 ({ go, status, plan }) => {
-  const canSee = (m: Mission) =>
-  rank(status) >= rank(m.minStatus) && hasPlan(plan, m.requiredPlan);
+  const canSee = (m: Mission) => rank(status) >= rank(m.minStatus) && hasPlan(plan, m.requiredPlan);
   return (
     <div className="page pad fade-in" style={{ position:"relative", backgroundImage:'url("/home-bg.jpg")', backgroundSize:"cover", backgroundPosition:"center", backgroundRepeat:"no-repeat", minHeight:"100vh" }}>
       <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.55)", zIndex:0 }} />
       <div style={{ position:"relative", zIndex:1 }}>
         <Hero />
+
+        {/* === ФОНД: баланс и распределение === */}
+        <div className="sp-3" />
+        <FundCard />
+
+        {/* Миссии */}
         <div className="sp-4" />
         <div className="row-b">
           <div className="h2">Миссии</div>
@@ -228,6 +305,7 @@ const HomeScreen: React.FC<{ go: React.Dispatch<React.SetStateAction<Tab>>; stat
           })}
         </div>
 
+        {/* Jetlag Daily */}
         <div className="sp-4" />
         <div className="row-b">
           <div className="h2">Jetlag Daily</div>
@@ -253,8 +331,7 @@ const HomeScreen: React.FC<{ go: React.Dispatch<React.SetStateAction<Tab>>; stat
 };
 
 const MissionsScreen: React.FC<{ status: StatusLevel; plan: PlanKey; }> = ({ status, plan }) => {
-  const canSee = (m: Mission) =>
-  rank(status) >= rank(m.minStatus) && hasPlan(plan, m.requiredPlan);
+  const canSee = (m: Mission) => rank(status) >= rank(m.minStatus) && hasPlan(plan, m.requiredPlan);
   return (
     <div className="page pad fade-in">
       <div className="h2">Миссии</div>
@@ -298,7 +375,8 @@ const MissionsScreen: React.FC<{ status: StatusLevel; plan: PlanKey; }> = ({ sta
 
 const EventsScreen: React.FC<{ status: StatusLevel; plan: PlanKey; }> = ({ status, plan }) => {
   const items = EVENTS.filter(
-  e => rank(status) >= rank(e.access.minStatus) && hasPlan(plan, e.access.plan as Exclude<PlanKey, null> | null));
+    e => rank(status) >= rank(e.access.minStatus) && hasPlan(plan, e.access.plan as Exclude<PlanKey, null> | null)
+  );
   return (
     <div className="page pad fade-in">
       <div className="h2">Афиша</div>
@@ -434,11 +512,14 @@ const ProfileScreen: React.FC<{
   status: StatusLevel; plan: PlanKey; jetpoints: number; next: number; onSettings: () => void;
 }> = ({ status, plan, jetpoints }) => {
   const profile = { username: "Привет, Даниил!", city: "Москва", role: "Продюсер" };
-  const RED_GOAL = 10_000;
-  const isBlack = status === "BLACK";
-  const pct = isBlack ? 1 : Math.min(1, Math.max(0, jetpoints / RED_GOAL));
+
+  const target = LEVELS[status].need;
+  const pct = status === "BLACK" ? 1 : Math.min(1, (jetpoints || 0) / (target || 1));
   const pctPercent = Math.round(pct * 100);
-  const statusColor = status === "RED" ? "var(--red)" : status === "BLACK" ? "var(--muted)" : "var(--text)";
+
+  const statusColor =
+    status === "RED" ? "var(--red)" :
+    status === "BLACK" ? "var(--muted)" : "var(--text)";
 
   return (
     <div className="page pad fade-in">
@@ -456,15 +537,36 @@ const ProfileScreen: React.FC<{
           </div>
 
           <div className="sp-3" />
-          <div className="status-track">
-            <div className="status-track__bar" style={{ width:`${pctPercent}%` }} />
+          <div className="status-track" style={{ position:"relative" }}>
+            <div className="status-track__bar" style={{ width:`${pctPercent}%`, transition:"width .6s ease" }} />
             <span className="status-tick" style={{ left:"0%" }} />
             <span className="status-tick" style={{ left:"100%" }} />
+            <div className="t-caption" style={{ position:"absolute", top:-18, right:0, opacity:.9 }}>
+              {jetpoints.toLocaleString("ru-RU")}
+            </div>
           </div>
+
           <div className="status-legend">
-            <div className="status-legend__item">WHITE</div>
-            <div className="status-legend__item">RED • 10 000</div>
-            <div className="status-legend__item">BLACK • ∞</div>
+            {status === "WHITE" && (
+              <>
+                <div className="status-legend__item">WHITE</div>
+                <div className="status-legend__item">RED • {LEVELS.WHITE.need?.toLocaleString("ru-RU")}</div>
+                <div className="status-legend__item">BLACK • ∞</div>
+              </>
+            )}
+            {status === "RED" && (
+              <>
+                <div className="status-legend__item">RED</div>
+                <div className="status-legend__item">BLACK • {LEVELS.RED.need?.toLocaleString("ru-RU")}</div>
+                <div className="status-legend__item">∞</div>
+              </>
+            )}
+            {status === "BLACK" && (
+              <>
+                <div className="status-legend__item">BLACK</div>
+                <div className="status-legend__item">MAX</div>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -538,10 +640,10 @@ const LandingScreen: React.FC<{ onEnterHub: () => void; onOpenWhite: () => void 
 type PlanCard = { key: PlanKey | "FREE"; title: string; price: string; subtitle: string; features: string[]; best?: boolean; };
 
 const PLAN_CARDS: PlanCard[] = [
-  { key:"FREE", title:"Free", price:"₽0 / месяц", subtitle:"Базовый доступ", features:["Доступ к Jetlag Hub и Daily","Участие в миссиях уровня WHITE","Профиль и JetPoints"] },
-  { key:"PLUS", title:"Plus", price:"₽1 000 / месяц", subtitle:"Больше доступа к экосистеме", features:["Расширенные миссии","Приоритет в откликах","Ежемесячные бонус-миссии + XP буст","Ранний доступ к ивентам"], best:true },
-  { key:"PRO", title:"Pro", price:"₽5 000 / месяц", subtitle:"Для активных креаторов", features:["Все из Plus", "Доступ в усадьбу джетлаг","PRO-миссии с кэш-гонорарами","Больше слотов на отклики","Приоритетная модерация и поддержка"] },
-  { key:"STUDIO", title:"Studio", price:"дог.", subtitle:"Команды/студии", features:["Командные роли и доступы","Биллинг и отчёты","Корпоративные миссии","Консьерж и кастомные интеграции"] },
+  { key:"FREE",  title:"Free",  price:"₽0 / месяц",      subtitle:"Базовый доступ",                 features:["Доступ к Jetlag Hub и Daily","Участие в миссиях уровня WHITE","Профиль и JetPoints"] },
+  { key:"PLUS",  title:"Plus",  price:"₽1 000 / месяц",  subtitle:"Больше доступа к экосистеме",    features:["Расширенные миссии","Приоритет в откликах","Ежемесячные бонус-миссии + XP буст","Ранний доступ к ивентам"], best:true },
+  { key:"PRO",   title:"Pro",   price:"₽5 000 / месяц",  subtitle:"Для активных креаторов",         features:["Все из Plus", "Доступ в усадьбу джетлаг","Скидки на продукты экосистемы", "PRO-миссии с кэш-гонорарами","Больше слотов на отклики","Приоритетная модерация и поддержка"] },
+  { key:"STUDIO",title:"Studio",price:"дог.",            subtitle:"Команды/студии",                  features:["Командные роли и доступы","Биллинг и отчёты","Корпоративные миссии","Консьерж и кастомные интеграции"] },
 ];
 
 const PlansScreen: React.FC<{ current: PlanKey; onChoose: (p: PlanKey) => void; }> =
@@ -658,15 +760,12 @@ export default function App() {
 
   const [tab, setTab] = useState<Tab>("landing");
   const [status] = useState<StatusLevel>("WHITE");
-  const [plan, setPlan] = useState<PlanKey>(null);             // ← теперь можно менять план
+  const [plan, setPlan] = useState<PlanKey>(null);
   const jetpoints = 2540;
 
   const openWhite = () => { try { window.open(WHITE_CHAT_URL, "_blank", "noopener,noreferrer"); } catch {} };
 
-  // 1) Первый запуск — анкета
   if (boot === "survey") return <OnboardingSurvey onDone={() => setBoot("landing")} />;
-
-  // 2) Старт после анкеты — Landing
   if (boot === "landing") {
     return (
       <LandingScreen
@@ -676,7 +775,6 @@ export default function App() {
     );
   }
 
-  // 3) Полноценное приложение
   return (
     <>
       {tab !== "landing" && (
@@ -696,10 +794,10 @@ export default function App() {
       {tab === "market" && <MarketScreen />}
       {tab === "jetlag" && <JetlagHub go={setTab} />}
       {tab === "profile" && <ProfileScreen status={status} plan={plan} jetpoints={jetpoints} next={500} onSettings={() => alert("Настройки (демо)")} />}
-      {tab === "plans" && (                                            /* ← ДОБАВЛЕНО */
+      {tab === "plans" && (
         <PlansScreen
           current={plan}
-          onChoose={(p) => { setPlan(p); setTab("profile"); }}         /* ← обновляем и возвращаемся */
+          onChoose={(p) => { setPlan(p); setTab("profile"); }}
         />
       )}
 
