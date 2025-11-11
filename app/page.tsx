@@ -1,9 +1,10 @@
 "use client";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+
 const WHITE_CHAT_URL = process.env.NEXT_PUBLIC_WHITE_CHAT || "https://t.me/jetlagchat";
 
 /** ── Types ───────────────────────────────────────── */
-type Tab = "landing" | "home" | "missions" | "events" | "market" | "jetlag" | "profile";
+type Tab = "landing" | "home" | "missions" | "events" | "market" | "jetlag" | "profile" | "plans";
 type StatusLevel = "WHITE" | "RED" | "BLACK";
 type PlanKey = "PLUS" | "PRO" | "STUDIO" | null;
 const rank = (s: StatusLevel) => (s === "WHITE" ? 1 : s === "RED" ? 2 : 3);
@@ -73,9 +74,9 @@ const Chip: React.FC<{children:React.ReactNode}> = ({children}) => <span classNa
 
 /** ── Top bar (2 строки) ───────────────────────────── */
 const TopBar: React.FC<{
-  onProfile:()=>void; onSettings:()=>void;
+  onProfile:()=>void; onSettings:()=>void; onOpenPlans:()=>void;
   status: StatusLevel; plan: PlanKey;
-}> = ({onProfile,onSettings,status,plan}) => (
+}> = ({onProfile,onSettings,onOpenPlans,status,plan}) => (
   <div className="pad-x" style={{position:"sticky", top:0, zIndex:30, backdropFilter:"saturate(180%) blur(14px)", background:"rgba(0,0,0,.55)", borderBottom:"1px solid var(--line)"}}>
     <div className="sp-3" />
     <div className="row-b">
@@ -86,23 +87,22 @@ const TopBar: React.FC<{
     </div>
     <div className="sp-2" />
     <div className="row-b">
-      <button
-        className="row"
-        onClick={onProfile}
-        aria-label="Профиль"
-        style={{gap:8, background:"transparent", border:"none", borderRadius:10, height:28, padding:"0 12px", alignItems:"center"}}
-      >
+      <button className="row" onClick={onProfile} aria-label="Профиль" style={{gap:8, background:"transparent", border:"none", borderRadius:10, height:28, padding:"0 12px", alignItems:"center"}}>
         <span className="ava" style={{width:22,height:22, borderRadius:8, background:"rgba(255,255,255,.15)", display:"flex", alignItems:"center", justifyContent:"center"}}><Icon.User/></span>
         <span style={{fontSize:12,fontWeight:600,color:"white"}}>Даниил</span>
       </button>
       <div className="row" style={{gap:8}}>
         <Chip>{status}</Chip>
-        <Chip>{plan ?? "нет плана"}</Chip>
+        <button className="chip" onClick={onOpenPlans} title="Управление подпиской">
+          {plan ?? "нет плана"}
+        </button>
       </div>
     </div>
     <div className="sp-2" />
   </div>
 );
+
+
 
 /** ── Bottom nav ───────────────────────────────────── */
 const BottomNav: React.FC<{tab:Tab; onChange:React.Dispatch<React.SetStateAction<Tab>>}> = ({tab,onChange}) => {
@@ -358,15 +358,14 @@ const JetlagHub: React.FC<{go:React.Dispatch<React.SetStateAction<Tab>>}> = ({go
 
       <div className="h2" style={{ marginBottom: 8 }}>Экосистема FMT.JETLAG</div>
 
-      {/* тут задаём флаг cta для каждой карточки */}
       <div className="grid-2">
         {[
           { t: "Контент",     d: "Создаем контент для главных брендов мира", cta: true  },
           { t: "Музыка",      d: "Лейбл с крупнейшими артистами России и СНГ",         cta: true  },
-          { t: "Образование", d: "Магистратура и бакалавр",             cta: true  },
-          { t: "Усадьба",     d: "Резиденция FMT.JETLAG",                               cta: true  },
-          { t: "Спорт",       d: "Скоро открытие",                                      cta: false }, // ← без кнопки
-          { t: "Продукты",    d: "Скоро запуск",                                        cta: false }, // ← без кнопки
+          { t: "Образование", d: "Магистратура и бакалавр",                             cta: true  },
+          { t: "Усадьба",     d: "Резиденция FMT.JETLAG",                                cta: true  },
+          { t: "Спорт",       d: "Скоро открытие",                                       cta: false },
+          { t: "Продукты",    d: "Скоро запуск",                                         cta: false },
         ].map((p, i) => (
           <div className="card" key={i}>
             <div className="card-sec">
@@ -430,62 +429,39 @@ const JetlagHub: React.FC<{go:React.Dispatch<React.SetStateAction<Tab>>}> = ({go
   </div>
 );
 
-/** ── Новый экран: Профиль (новый формат) ─────────── */
+/** ── Профиль ─────────────────────────────────────── */
 const ProfileScreen: React.FC<{
   status: StatusLevel;
   plan: PlanKey;
   jetpoints: number;
-  next: number;                  // оставим параметр, но он теперь не влияет на бар
+  next: number;
   onSettings: () => void;
 }> = ({ status, plan, jetpoints, onSettings }) => {
-  // данные профиля (потом подставим реальные из Telegram init-data)
-  const profile = {
-    username: "Привет, Даниил!",
-    city: "Москва",
-    role: "Продюсер",
-};
-
-  // логика статуса/прогресса
-  const RED_GOAL = 10_000;                       // переход на RED
+  const profile = { username: "Привет, Даниил!", city: "Москва", role: "Продюсер" };
+  const RED_GOAL = 10_000;
   const isBlack = status === "BLACK";
   const pct = isBlack ? 1 : Math.min(1, Math.max(0, jetpoints / RED_GOAL));
   const pctPercent = Math.round(pct * 100);
-
-  // цвет бейджа статуса
-  const statusColor =
-    status === "RED" ? "var(--red)" :
-    status === "BLACK" ? "var(--muted)" : "var(--text)";
+  const statusColor = status === "RED" ? "var(--red)" : status === "BLACK" ? "var(--muted)" : "var(--text)";
 
   return (
     <div className="page pad fade-in">
-      {/* Хедер профиля */}
       <div className="card">
         <div className="card-sec">
           <div className="row-b">
             <div>
-              <div className="h2" style={{fontSize:20, lineHeight:1.15}}>
-                {profile.username}
-              </div>
-              <div className="t-caption" style={{marginTop:6}}>
-                {profile.city} • {profile.role}
-              </div>
+              <div className="h2" style={{fontSize:16, lineHeight:1.15}}>{profile.username}</div>
+              <div className="t-caption" style={{marginTop:6}}>{profile.city} • {profile.role}</div>
             </div>
-
             <div style={{textAlign:"right"}}>
-              <div className="status-badge" style={{color:statusColor,borderColor:"rgba(255,255,255,.22)"}}>
-                {status}
-              </div>
-              <div className="t-caption" style={{marginTop:6}}>
-                Баланс: <b>{jetpoints.toLocaleString("ru-RU")}</b>
-              </div>
+              <div className="status-badge" style={{color:statusColor,borderColor:"rgba(255,255,255,.22)"}}>{status}</div>
+              <div className="t-caption" style={{marginTop:6}}>Баланс: <b>{jetpoints.toLocaleString("ru-RU")}</b></div>
             </div>
           </div>
 
-          {/* Прогресс-бар WHITE → RED → BLACK */}
           <div className="sp-3" />
           <div className="status-track">
             <div className="status-track__bar" style={{width: `${pctPercent}%`}} />
-            {/* метки-точки */}
             <span className="status-tick" style={{left:"0%"}} />
             <span className="status-tick" style={{left:"100%"}} />
           </div>
@@ -494,64 +470,29 @@ const ProfileScreen: React.FC<{
             <div className="status-legend__item">RED • 10 000</div>
             <div className="status-legend__item">BLACK • ∞</div>
           </div>
-
-          <div className="t-caption" style={{marginTop:6}}>
-          </div>
         </div>
       </div>
 
-      {/* Достижения — горизонтальный скролл */}
       <div className="sp-3" />
       <div className="card">
         <div className="card-sec">
           <div className="h2">Достижения</div>
           <div className="sp-2" />
-
-          {/* список в одну строку со скроллом */}
           <div className="ach-scroll">
-            {[
-              { id:"a1", icon:(
+            {["a1","a2","a3","a4","a5"].map(id=>(
+              <div className="ach" key={id}><div className="ach__icon">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H8l-4 3v-5H5" />
-                  <path d="M17 9a4 4 0 1 1-8 0 4 4 0 0 1 8 0z"/>
+                  <circle cx="12" cy="12" r="9"/><path d="M12 6v6l4 2"/>
                 </svg>
-              )},
-              { id:"a2", icon:(
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="9"/>
-                  <path d="M12 6v6l4 2"/>
-                </svg>
-              )},
-              { id:"a3", icon:(
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 2l3 7h7l-5.6 4.1L19 21l-7-4.5L5 21l2.6-7.9L2 9h7z"/>
-                </svg>
-              )},
-              { id:"a4", icon:(
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M6 6h15l-1.5 9a2 2 0 0 1-2 1.7H8.5L7 6z"/><circle cx="9" cy="21" r="1.5"/><circle cx="18" cy="21" r="1.5"/>
-                </svg>
-              )},
-              { id:"a5", icon:(
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
-                </svg>
-              )},
-            ].map(a=>(
-              <div className="ach" key={a.id}>
-                <div className="ach__icon">{a.icon}</div>
-              </div>
+              </div></div>
             ))}
           </div>
         </div>
       </div>
 
-      {/* Активные задачи (как было) */}
       <div className="sp-3" />
       <div className="card">
-        <div className="card-sec">
-          <div className="h2">Задачи</div>
-        </div>
+        <div className="card-sec"><div className="h2">Задачи</div></div>
         <div className="separator" />
         <div className="card-sec">
           <div className="list">
@@ -579,53 +520,234 @@ const ProfileScreen: React.FC<{
     </div>
   );
 };
+
+/** ── Landing ──────────────────────────────────────── */
 const LandingScreen: React.FC<{onEnterHub:()=>void; onOpenWhite:()=>void}> = ({onEnterHub, onOpenWhite}) => (
-  <div
-    className="page fade-in"
-    style={{
-      minHeight: "100vh",
-      background: "black",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      padding: 24
-    }}
-  >
-    <div style={{maxWidth: 520, width: "100%", textAlign: "center"}}>
-      {/* логотип/знак при желании */}
-
-      <div style={{height: 12}} />
-      <div style={{fontSize: 22, fontWeight: 700}}>Добро пожаловать в экосистему FMT.JETLAG</div>
-      <div style={{height: 28}} />
-
-      <div style={{display:"grid", gap: 10}}>
-        <button
-          className="btn"
-          onClick={onEnterHub}
-          style={{height: 48, fontSize: 15, fontWeight: 600}}
-        >
-          JETLAG HUB
-        </button>
-        <button
-          className="btn btn-sec"
-          onClick={onOpenWhite}
-          style={{height: 48, fontSize: 15, fontWeight: 600}}
-        >
-          JETLAG WHITE (Telegram)
-        </button>
+  <div className="page fade-in" style={{minHeight:"100vh",background:"black",display:"flex",alignItems:"center",justifyContent:"center",padding:24}}>
+    <div style={{maxWidth:520, width:"100%", textAlign:"center"}}>
+      <div style={{height:12}} />
+      <div style={{fontSize:22, fontWeight:700}}>Добро пожаловать в экосистему FMT.JETLAG</div>
+      <div style={{height:28}} />
+      <div style={{display:"grid", gap:10}}>
+        <button className="btn" onClick={onEnterHub} style={{height:48, fontSize:15, fontWeight:600}}>JETLAG HUB</button>
+        <button className="btn btn-sec" onClick={onOpenWhite} style={{height:48, fontSize:15, fontWeight:600}}>JETLAG WHITE (Telegram)</button>
       </div>
-
-      {/* маленькая подпись */}
-      <div style={{marginTop: 18, fontSize: 12, opacity: .6}}>
-        Нажмите «JETLAG HUB», чтобы войти в мини-приложение
-      </div>
+      <div style={{marginTop:18, fontSize:12, opacity:.6}}>Нажмите «JETLAG HUB», чтобы войти в мини-приложение</div>
     </div>
   </div>
-);
+);type PlanCard = {
+  key: PlanKey | "FREE";
+  title: string;
+  price: string; // текстом
+  subtitle: string;
+  features: string[];
+  best?: boolean;
+};
+
+/** ── Plans ──────────────────────────────────────── */
+const PLAN_CARDS: PlanCard[] = [
+  {
+    key: "FREE",
+    title: "Free",
+    price: "$0 / месяц",
+    subtitle: "Базовый доступ",
+    features: [
+      "Доступ к Jetlag Hub и Daily",
+      "Участие в миссиях уровня WHITE",
+      "Профиль и JetPoints",
+    ],
+  },
+  {
+    key: "PLUS",
+    title: "Plus",
+    price: "$20 / месяц",
+    subtitle: "Больше доступа к экосистеме",
+    features: [
+      "Расширенные миссии",
+      "Приоритет в откликах",
+      "Ежемесячные бонус-миссии + XP буст",
+      "Ранний доступ к ивентам",
+    ],
+    best: true,
+  },
+  {
+    key: "PRO",
+    title: "Pro",
+    price: "$200 / месяц",
+    subtitle: "Для активных креаторов и продакшнов",
+    features: [
+      "Все из Plus",
+      "PRO-миссии с кэш-гонорарами",
+      "Больше слотов на отклики",
+      "Приоритетная модерация и саппорт",
+    ],
+  },
+  {
+    key: "STUDIO",
+    title: "Studio",
+    price: "дог.",
+    subtitle: "Команды/студии",
+    features: [
+      "Командные роли и доступы",
+      "Биллинг и отчёты",
+      "Корпоративные миссии",
+      "Консьерж и кастомные интеграции",
+    ],
+  },
+];
+
+const PlansScreen: React.FC<{
+  current: PlanKey;
+  onChoose: (p: PlanKey) => void;
+}> = ({ current, onChoose }) => {
+  const handleChoose = (p: PlanKey) => {
+    // здесь потом можно заменить на платеж/бот
+    if (p === null) return;
+    const ok = confirm(`Подтвердить подключение плана ${p}?`);
+    if (ok) onChoose(p);
+  };
+
+  return (
+    <div className="page pad fade-in">
+      <div className="row-b">
+        <div className="h2">Подписки</div>
+        <div className="t-caption">Текущий план: <b>{current ?? "Free"}</b></div>
+      </div>
+      <div className="sp-3" />
+
+      {/* карточки как в примере — одна колонка, с «лучшее предложение» */}
+      <div className="list">
+        {PLAN_CARDS.map(card => (
+          <div key={card.key} className="card" style={{border: card.best ? "1px solid rgba(255,255,255,.35)" : "1px solid var(--line)", boxShadow: card.best ? "0 0 0 1px rgba(255,255,255,.12) inset" : undefined}}>
+            <div className="card-sec">
+              <div className="row-b">
+                <div className="h2">{card.title}</div>
+                {card.best && <span className="chip">Топ выбор</span>}
+              </div>
+              <div className="sp-1" />
+              <div className="row" style={{alignItems:"baseline", gap:8}}>
+                <div className="h2" style={{fontSize:22}}>{card.price}</div>
+                <div className="t-caption">{card.subtitle}</div>
+              </div>
+              <div className="sp-2" />
+              <ul className="t-body" style={{display:"grid", gap:6, paddingLeft:18}}>
+                {card.features.map((f,i)=> <li key={i}>{f}</li>)}
+              </ul>
+              <div className="sp-3" />
+              {card.key === "FREE" ? (
+                <Button kind="ghost" size="m" className={current===null?"btn-disabled":""} onClick={()=>onChoose(null)}>
+                  Оставить Free
+                </Button>
+              ) : (
+                <Button
+                  size="m"
+                  className={current===card.key?"btn-disabled":""}
+                  onClick={()=>handleChoose(card.key as PlanKey)}
+                >
+                  {current===card.key ? "Текущий план" : "Подключить"}
+                </Button>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* сравнение в виде мини-таблицы */}
+      <div className="sp-4" />
+      <div className="card">
+        <div className="card-sec">
+          <div className="h2">Сравнение возможностей</div>
+          <div className="sp-2" />
+          <div className="t-caption" style={{opacity:.9}}>
+            • Миссии: Free — WHITE, Plus — WHITE/RED*, Pro — все + PRO-миссии, Studio — командный доступ. <br/>
+            • Ивенты: Free — общие, Plus/Pro — ранний доступ, Studio — корпоративные квоты.
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
+/** ── Onboarding Survey (показывается 1 раз) ─────────
+ * Если хочешь — замени разметку внутри на твой большой опросник.
+ * Ключ: после успешной отправки вызывай onDone() и ставь localStorage.setItem("jl_survey_done","1")
+ */
+const OnboardingSurvey: React.FC<{onDone:()=>void}> = ({onDone}) => {
+  const [lang, setLang] = useState<"ru"|"en">("ru");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+
+  const valid = name.trim().length>1 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+  const submit = () => {
+    if (!valid) return alert(lang==="ru"?"Заполните имя и email":"Fill name and email");
+    try {
+      // тут можешь добавить tg.sendData(...) и/или fetch() на свой endpoint
+      localStorage.setItem("jl_survey_done","1");
+      onDone();
+    } catch(e) {
+      alert(lang==="ru"?"Не удалось отправить. Попробуйте ещё раз.":"Failed to submit. Try again.");
+    }
+  };
+
+  return (
+    <div className="page fade-in" style={{minHeight:"100vh",background:"black",display:"flex",alignItems:"center",justifyContent:"center",padding:24}}>
+      <div style={{width:"100%", maxWidth:520}}>
+        <div style={{fontSize:22, fontWeight:700, color:"#fff"}}>{lang==="ru"?"Стань частью FMT.JETLAG":"Join FMT.JETLAG"}</div>
+        <div style={{height:12}}/>
+        <div style={{fontSize:13, color:"rgba(255,255,255,.65)"}}>
+          {lang==="ru"?"Короткая анкета • 1 минута":"Short form • 1 minute"}
+        </div>
+
+        <div style={{height:24}}/>
+        <label style={{display:"block", fontSize:12, marginBottom:6, color:"#fff"}}>{lang==="ru"?"Имя":"Name"}</label>
+        <input
+          value={name}
+          onChange={e=>setName(e.target.value)}
+          placeholder={lang==="ru"?"Введите имя":"Enter your name"}
+          style={{width:"100%", height:44, borderRadius:12, padding:"0 14px", background:"#0f0f0f", border:"1px solid #2a2a2a", color:"#fff"}}
+        />
+
+        <div style={{height:14}}/>
+        <label style={{display:"block", fontSize:12, marginBottom:6, color:"#fff"}}>Email</label>
+        <input
+          value={email}
+          onChange={e=>setEmail(e.target.value)}
+          placeholder="you@email.com"
+          style={{width:"100%", height:44, borderRadius:12, padding:"0 14px", background:"#0f0f0f", border:"1px solid #2a2a2a", color:"#fff"}}
+        />
+
+        <div style={{height:14}}/>
+        <label style={{display:"block", fontSize:12, marginBottom:6, color:"#fff"}}>{lang==="ru"?"Язык":"Language"}</label>
+        <select value={lang} onChange={e=>setLang(e.target.value as "ru"|"en")} style={{width:"100%", height:44, borderRadius:12, padding:"0 10px", background:"#0f0f0f", border:"1px solid #2a2a2a", color:"#fff"}}>
+          <option value="ru">Русский</option>
+          <option value="en">English</option>
+        </select>
+
+        <div style={{height:20}}/>
+        <button className="btn" onClick={submit} style={{width:"100%", height:48, fontWeight:700, opacity: valid?1:.6}}>
+          {lang==="ru"?"Отправить и продолжить":"Submit and continue"}
+        </button>
+
+        {/* === ЗАМЕНИ ЭТОТ ЭКРАН НА ТВОЙ ПОЛНЫЙ ОПРОСНИК, ЕСЛИ НУЖНО === */}
+      </div>
+    </div>
+  );
+};
 
 /** ── Root ─────────────────────────────────────────── */
 export default function App(){
-  const [tab, setTab] = useState<Tab>("landing"); // ← стартуем со стартового экрана
+  // boot: checking -> survey (нет флага) -> landing (есть флаг) -> app (после клика)
+  const [boot, setBoot] = useState<"checking"|"survey"|"landing"|"app">("checking");
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const done = localStorage.getItem("jl_survey_done") === "1";
+    setBoot(done ? "landing" : "survey");
+  }, []);
+
+  const [tab, setTab] = useState<Tab>("landing"); // используется только когда boot === "app"
   const [status] = useState<StatusLevel>("WHITE");
   const [plan]   = useState<PlanKey>(null);
   const jetpoints = 2540;
@@ -635,19 +757,34 @@ export default function App(){
     catch { /* no-op */ }
   };
 
+  // 1) Первый запуск — анкета
+  if (boot === "survey") {
+    return <OnboardingSurvey onDone={()=>setBoot("landing")} />;
+  }
+
+  // 2) Старт после анкеты — Landing
+  if (boot === "landing") {
+    return (
+      <LandingScreen
+        onEnterHub={()=>{ setBoot("app"); setTab("profile"); }}
+        onOpenWhite={openWhite}
+      />
+    );
+  }
+
+  // 3) Полноценное приложение
   return (
     <>
-      {/* НЕ показываем верхнюю панель на экране приветствия */}
       {tab !== "landing" && (
         <TopBar
           status={status}
           plan={plan}
           onProfile={()=>setTab("profile")}
           onSettings={()=>alert("Настройки (демо)")}
+          onOpenPlans={()=>setTab("plans")}
         />
       )}
-      
-      {/* Экраны */}
+
       {tab==="landing" && (
         <LandingScreen
           onEnterHub={()=>setTab("profile")}
@@ -660,8 +797,6 @@ export default function App(){
       {tab==="market" && <MarketScreen/>}
       {tab==="jetlag" && <JetlagHub go={setTab}/>}
       {tab==="profile" && (
-        
-        
         <ProfileScreen
           status={status}
           plan={plan}
@@ -671,7 +806,6 @@ export default function App(){
         />
       )}
 
-      {/* НЕ показываем нижнюю панель на экране приветствия */}
       {tab !== "landing" && <BottomNav tab={tab} onChange={setTab}/>}
     </>
   );
