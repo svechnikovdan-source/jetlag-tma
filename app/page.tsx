@@ -648,15 +648,7 @@ export default function App(){
           onSettings={()=>alert("Настройки (демо)")}
         />
       )}
-      {/* НЕ показываем верхнюю панель на экране приветствия */}
-      {tab !== "profile" && (
-        <TopBar
-          status={status}
-          plan={plan}
-          onProfile={()=>setTab("profile")}
-          onSettings={()=>alert("Настройки (демо)")}
-        />
-      )}
+      
       {/* Экраны */}
       {tab==="landing" && (
         <LandingScreen
