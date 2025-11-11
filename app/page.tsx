@@ -51,9 +51,9 @@ const MARKET: MarketItem[] = [
 
 const PEOPLE = [
   { id:"u1", name:"Арсений", role:"Основатель" },
-  { id:"u2", name:"Даниил", role:"Нефтянник" },
-  { id:"u3", name:"Бадри", role:"Gruzin" },
-  { id:"u4", name:"9Mice", role:"Artist" },
+  { id:"u2", name:"Мурад", role:"Блоггер" },
+  { id:"u3", name:"Даниил", role:"Нефтянник" },
+  { id:"u4", name:"9Mice", role:"Музыкант" },
   { id:"u5", name:"Kai Angel", role:"Музыкант" },
 ];
 
@@ -406,7 +406,6 @@ const JetlagHub: React.FC<{go:React.Dispatch<React.SetStateAction<Tab>>}> = ({go
                       <div className="t-caption" style={{ marginTop: 2 }}>{p.role}</div>
                     </div>
                   </div>
-                  <div className="t-caption" style={{ marginTop: 10 }}>создаём культуру вместе</div>
                 </div>
               </div>
             );
@@ -457,19 +456,47 @@ const ProfileScreen: React.FC<{status:StatusLevel; plan:PlanKey; jetpoints:numbe
 
       <div className="sp-3" />
 
+            {/* Достижения — горизонтальный скролл */}
+      <div className="sp-3" />
       <div className="card">
         <div className="card-sec">
           <div className="h2">Достижения</div>
-        </div>
-        <div className="separator" />
-        <div className="card-sec">
-          <div className="list">
-            {ACH.map(a=>(
-              <div className="card" key={a.id} style={{ background:"rgba(255,255,255,.05)" }}>
-                <div className="card-sec">
-                  <div className="h2" style={{ fontSize: 14 }}>{a.title}</div>
-                  <div className="t-caption" style={{ marginTop: 4 }}>{a.desc}</div>
-                </div>
+          <div className="sp-2" />
+
+          {/* список в одну строку со скроллом */}
+          <div className="ach-scroll">
+            {[
+              { id:"a1", title:"Первый отклик", icon:(
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H8l-4 3v-5H5" />
+                  <path d="M17 9a4 4 0 1 1-8 0 4 4 0 0 1 8 0z"/>
+                </svg>
+              )},
+              { id:"a2", title:"100 JetPoints", icon:(
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="9"/>
+                  <path d="M12 6v6l4 2"/>
+                </svg>
+              )},
+              { id:"a3", title:"Создатель", icon:(
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 2l3 7h7l-5.6 4.1L19 21l-7-4.5L5 21l2.6-7.9L2 9h7z"/>
+                </svg>
+              )},
+              { id:"a4", title:"Первая продажа", icon:(
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M6 6h15l-1.5 9a2 2 0 0 1-2 1.7H8.5L7 6z"/><circle cx="9" cy="21" r="1.5"/><circle cx="18" cy="21" r="1.5"/>
+                </svg>
+              )},
+              { id:"a5", title:"5 событий", icon:(
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
+                </svg>
+              )},
+            ].map(a=>(
+              <div className="ach" key={a.id}>
+                <div className="ach__icon">{a.icon}</div>
+                <div className="ach__txt">{a.title}</div>
               </div>
             ))}
           </div>
