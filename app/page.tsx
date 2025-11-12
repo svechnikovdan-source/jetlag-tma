@@ -24,7 +24,7 @@ const LEVELS: Record<StatusLevel, { next: StatusLevel | null; need: number | nul
 const FUND = {
   total: 12_500_000,   // текущий баланс
   spent: 5_000_000,    // уже выделено проектам
-  goal: 100_000_000,   // полный мешок = 100 млн
+  goal: 50_000_000,   // полный мешок = 50 млн
   updatedAt: "12.11.2025",
 };
 
@@ -132,16 +132,29 @@ const Chip: React.FC<{ children: React.ReactNode }> = ({ children }) => <span cl
 /** ── FundBag (мешок с заливкой) ─────────────────── */
 const FundBag: React.FC<{ total: number; spent: number; goal: number; updatedAt?: string; }> = ({ total, spent, goal, updatedAt }) => {
   const id = useId();
+  const [currentTotal, setCurrentTotal] = useState(total);
   const clamp = (v: number, a = 0, b = 1) => Math.max(a, Math.min(b, v));
-  const pct = clamp(total / goal);
+  const pct = clamp(currentTotal / goal);
+
+  // счётчики для плавного набора цифр
   const [viewTotal, setViewTotal] = useState(0);
   const [viewSpent, setViewSpent] = useState(0);
 
+  // демо-авторост: +50k каждые 2 сек до достижения цели
+  useEffect(() => {
+    const step = 5_000;
+    const timer = setInterval(() => {
+      setCurrentTotal(prev => (prev >= goal ? prev : Math.min(goal, prev + step)));
+    }, 2000);
+    return () => clearInterval(timer);
+  }, [goal]);
+
+  // анимация чисел при изменении currentTotal / spent
   useEffect(() => {
     const dur = 900;
     const t0 = performance.now();
     const startT = viewTotal, startS = viewSpent;
-    const diffT = total - startT;
+    const diffT = currentTotal - startT;
     const diffS = spent - startS;
     let raf = 0;
     const tick = (t: number) => {
@@ -154,8 +167,9 @@ const FundBag: React.FC<{ total: number; spent: number; goal: number; updatedAt?
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [total, spent]);
+  }, [currentTotal, spent]);
 
+  // геометрия заливки
   const W = 180, H = 200;
   const innerTop = 38;
   const innerBottom = 170;
@@ -174,15 +188,25 @@ const FundBag: React.FC<{ total: number; spent: number; goal: number; updatedAt?
 
         <div className="sp-2" />
 
-        <div className="row" style={{ gap: 16, alignItems: "center", flexWrap: "wrap" }}>
-          <svg width={W} height={H} viewBox="0 0 180 200" role="img" aria-label="Фонд — мешок с деньгами" style={{ display: "block" }}>
+        {/* выравнивание: сетка 2 колонки на широких, одна колонка на узких */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "minmax(180px, 200px) 1fr",
+            gap: 18,
+            alignItems: "center",
+          }}
+        >
+          {/* SVG мешок */}
+          <svg width={W} height={H} viewBox="0 0 180 200" role="img" aria-label="Фонд — мешок с деньгами" style={{ justifySelf: "center" }}>
             <defs>
               <clipPath id={`bag-clip-${id}`}>
                 <path d="M 30 80 C 28 120, 35 165, 90 170 C 145 165, 152 120, 150 80 C 150 65, 135 55, 120 48 C 105 42, 75 42, 60 48 C 45 55, 30 65, 30 80 Z" />
               </clipPath>
+              {/* красный джетлаг-градиент */}
               <linearGradient id="grad-money" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="rgba(144,238,144,0.95)" />
-                <stop offset="100%" stopColor="rgba(46,204,113,0.9)" />
+                <stop offset="0%" stopColor="rgba(255,92,92,0.98)" />
+                <stop offset="100%" stopColor="rgba(160,20,20,0.95)" />
               </linearGradient>
             </defs>
 
@@ -195,23 +219,29 @@ const FundBag: React.FC<{ total: number; spent: number; goal: number; updatedAt?
               <rect x="26" y={fillY + 6} width="60" height="6" fill="rgba(255,255,255,0.18)" rx="3" />
             </g>
 
+            {/* горловина и контур */}
             <path d="M 60 40 C 75 35, 105 35, 120 40 C 122 48, 122 48, 120 54 C 105 50, 75 50, 60 54 C 58 48, 58 48, 60 40 Z" fill="rgba(0,0,0,0.45)" stroke="rgba(255,255,255,0.22)" strokeWidth="1" />
             <rect x="58" y="52" width="64" height="7" rx="3.5" fill="rgba(0,0,0,0.55)" />
             <path d="M 30 80 C 28 120, 35 165, 90 170 C 145 165, 152 120, 150 80 C 150 65, 135 55, 120 48 C 105 42, 75 42, 60 48 C 45 55, 30 65, 30 80 Z" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="2" />
-            <line x1="152" x2="170" y1={innerTop} y2={innerTop} stroke="rgba(255,255,255,0.25)" strokeWidth="1.5" />
-            <text x="172" y={innerTop + 4} fill="rgba(255,255,255,0.65)" fontSize="10">100 млн</text>
           </svg>
 
-          <div style={{ minWidth: 220 }}>
+          {/* Текстовый блок */}
+          <div style={{ minWidth: 220, justifySelf: "center", textAlign: "left" }}>
             <div className="t-caption" style={{ opacity: .85 }}>Баланс фонда</div>
             <div className="h2" style={{ fontSize: 22, lineHeight: 1.15 }}>{fmt(viewTotal)}</div>
+
             <div className="sp-1" />
             <div className="t-caption" style={{ opacity: .85 }}>Выделено проектам</div>
             <div className="t-body" style={{ fontWeight: 600 }}>{fmt(viewSpent)}</div>
-            <div className="sp-1" />
-            <div className="t-caption" style={{ opacity: .8 }}>Прогресс: {(pct * 100).toFixed(1)}% к цели 100&nbsp;млн</div>
           </div>
         </div>
+      </div>
+
+      {/* кнопка «Подробнее» */}
+      <div className="separator" />
+      <div className="card-sec row-b">
+        <div className="t-caption">Фонд формируется из подписок. Ежемесячные отчёты — скоро.</div>
+        <Button kind="secondary" size="s" onClick={() => alert("Страница прозрачности (демо)")}>Подробнее</Button>
       </div>
     </div>
   );
@@ -733,18 +763,22 @@ const OnboardingSurvey: React.FC<{ onDone: () => void }> = ({ onDone }) => {
         <div style={{ fontSize:22, fontWeight:700, color:"#fff" }}>{lang === "ru" ? "Стань частью FMT.JETLAG" : "Join FMT.JETLAG"}</div>
         <div style={{ height:12 }} />
         <div style={{ fontSize:13, color:"rgba(255,255,255,.65)" }}>{lang === "ru" ? "Короткая анкета • 1 минута" : "Short form • 1 minute"}</div>
+
         <div style={{ height:24 }} />
         <label style={{ display:"block", fontSize:12, marginBottom:6, color:"#fff" }}>{lang === "ru" ? "Имя" : "Name"}</label>
         <input value={name} onChange={e => setName(e.target.value)} placeholder={lang === "ru" ? "Введите имя" : "Enter your name"} style={{ width:"100%", height:44, borderRadius:12, padding:"0 14px", background:"#0f0f0f", border:"1px solid #2a2a2a", color:"#fff" }} />
+
         <div style={{ height:14 }} />
         <label style={{ display:"block", fontSize:12, marginBottom:6, color:"#fff" }}>Email</label>
         <input value={email} onChange={e => setEmail(e.target.value)} placeholder="you@email.com" style={{ width:"100%", height:44, borderRadius:12, padding:"0 14px", background:"#0f0f0f", border:"1px solid #2a2a2a", color:"#fff" }} />
+
         <div style={{ height:14 }} />
         <label style={{ display:"block", fontSize:12, marginBottom:6, color:"#fff" }}>{lang === "ru" ? "Язык" : "Language"}</label>
         <select value={lang} onChange={e => setLang(e.target.value as "ru" | "en")} style={{ width:"100%", height:44, borderRadius:12, padding:"0 10px", background:"#0f0f0f", border:"1px solid #2a2a2a", color:"#fff" }}>
           <option value="ru">Русский</option>
           <option value="en">English</option>
         </select>
+
         <div style={{ height:20 }} />
         <button className="btn" onClick={submit} style={{ width:"100%", height:48, fontWeight:700, opacity: valid ? 1 : .6 }}>
           {lang === "ru" ? "Отправить и продолжить" : "Submit and continue"}
