@@ -138,220 +138,200 @@ const Button: React.FC<{ children: React.ReactNode; kind?: "primary" | "secondar
 );
 const Chip: React.FC<{ children: React.ReactNode }> = ({ children }) => <span className="chip">{children}</span>;
 
-/** ── SafeVault (квадратный сейф с заливкой) ──────── */
+/** ── SafeVault v2: variant = 'cash' | 'coins' | 'liquid' ── */
 const SafeVault: React.FC<{
-  total: number;          // текущий баланс
-  spent: number;          // потрачено
-  goal: number;           // цель (полный сейф)
+  total: number;
+  spent: number;
+  goal: number;
   updatedAt?: string;
-}> = ({ total, spent, goal, updatedAt }) => {
+  variant?: "cash" | "coins" | "liquid";
+}> = ({ total, spent, goal, updatedAt, variant = "cash" }) => {
   const id = useId();
-
-  // Текущее «живое» значение баланса (демо-автоприращение)
   const [currentTotal, setCurrentTotal] = useState(total);
-
-  // Анимированные отображаемые цифры
   const [viewTotal, setViewTotal] = useState(0);
   const [viewSpent, setViewSpent] = useState(0);
 
-  // Автоприращение: +5k каждые 2 секунды (ограничено goal)
+  // демо-автоприращение: по умолчанию +5k/2s (поменяй на 1/100ms при желании)
   useEffect(() => {
-    const step = 5_000;       // поменяй при желании
     const timer = setInterval(() => {
-      setCurrentTotal(prev => (prev >= goal ? prev : Math.min(goal, prev + step)));
+      setCurrentTotal(prev => (prev >= goal ? prev : Math.min(goal, prev + 5000)));
     }, 2000);
     return () => clearInterval(timer);
   }, [goal]);
 
-  // Плавная анимация чисел
   useEffect(() => {
-    const dur = 900;
-    const t0 = performance.now();
-    const startT = viewTotal, startS = viewSpent;
-    const diffT = currentTotal - startT;
-    const diffS = spent - startS;
+    const dur = 800, t0 = performance.now();
+    const sT = viewTotal, sS = viewSpent;
+    const dT = currentTotal - sT, dS = spent - sS;
     let raf = 0;
-    const tick = (t: number) => {
+    const tick = (t:number) => {
       const k = Math.min(1, (t - t0) / dur);
-      const ease = 1 - Math.pow(1 - k, 3);
-      setViewTotal(Math.round(startT + diffT * ease));
-      setViewSpent(Math.round(startS + diffS * ease));
+      const e = 1 - Math.pow(1 - k, 3);
+      setViewTotal(Math.round(sT + dT * e));
+      setViewSpent(Math.round(sS + dS * e));
       if (k < 1) raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentTotal, spent]);
 
-  // Геометрия сейфа
   const BOX = { w: 200, h: 200, r: 16 };
-  const innerPadding = 18;           // внутренняя «камера» сейфа
-  const innerW = BOX.w - innerPadding * 2;
-  const innerH = BOX.h - innerPadding * 2;
-  const topY = innerPadding;
-  const bottomY = innerPadding + innerH;
+  const pad = 18;
+  const innerW = BOX.w - pad * 2;
+  const innerH = BOX.h - pad * 2;
+  const topY = pad, bottomY = pad + innerH;
+
   const pct = Math.max(0, Math.min(1, currentTotal / goal));
   const fillH = Math.round(innerH * pct);
   const fillY = bottomY - fillH;
 
-  const fmtMoney = (n: number) =>
-    new Intl.NumberFormat("ru-RU", { style: "currency", currency: "RUB", maximumFractionDigits: 0 }).format(n);
+  const fmt = (n:number) => new Intl.NumberFormat("ru-RU",{style:"currency",currency:"RUB",maximumFractionDigits:0}).format(n);
+
+  // ——— Рисуем содержимое сейфа по вариантам ———
+  const renderFill = () => {
+    if (variant === "cash") {
+      // Кол-во «слоёв купюр» пропорционально заполнению (до 8)
+      const layers = Math.max(0, Math.min(8, Math.ceil(pct * 8)));
+      const notes = Array.from({ length: layers }, (_, i) => {
+        const h = Math.max(12, Math.min(36, 12 + i * 3));
+        const y = bottomY - (i + 1) * (h + 2);
+        const tilt = (i % 2 === 0 ? -1 : 1) * Math.min(4, i); // лёгкий наклон
+        const shade = 0.9 - i * 0.06; // небольшой градиент по слоям
+        return (
+          <g key={i} transform={`translate(${pad + 4}, ${y}) rotate(${tilt}, ${innerW/2 - 8}, ${h/2})`}>
+            <rect x="0" y="0" width={innerW - 8} height={h} rx="6" fill={`rgba(255,92,92,${shade})`} />
+            {/* светлая полоска как «защитная нить» */}
+            <rect x="10" y={h/2 - 3} width={innerW - 28} height="6" rx="3" fill="rgba(255,255,255,0.15)">
+              <animate attributeName="opacity" values="0.2;0.4;0.2" dur="2.8s" repeatCount="indefinite" />
+            </rect>
+            {/* знак ₽ */}
+            <text x={innerW - 34} y={h/2 + 4} fontSize="12" fill="rgba(255,255,255,0.9)">₽</text>
+          </g>
+        );
+      });
+
+      return (
+        <g clipPath={`url(#vault-clip-${id})`}>
+          {/* мягкий фон камеры */}
+          <rect x={pad} y={pad} width={innerW} height={innerH} rx="10" fill="rgba(255,255,255,0.06)" />
+          {/* нижняя «подложка» для плавного роста уровня */}
+          <rect x={pad} y={fillY} width={innerW} height={fillH} fill="rgba(160,20,20,0.25)">
+            <animate attributeName="y" dur="0.9s" from={bottomY} to={fillY} fill="freeze" />
+            <animate attributeName="height" dur="0.9s" from={0} to={fillH} fill="freeze" />
+          </rect>
+          {/* сами купюры слоями */}
+          {notes}
+        </g>
+      );
+    }
+
+    if (variant === "coins") {
+      // Кол-во монет пропорционально заполнению (до 40)
+      const maxCoins = 40;
+      const count = Math.floor(pct * maxCoins);
+      const coins = Array.from({ length: count }, (_, i) => {
+        const cols = 8;
+        const col = i % cols;
+        const row = Math.floor(i / cols);
+        const r = 5 + (i % 3);                 // радиус 5..7
+        const gapX = (innerW - cols * (r * 2)) / (cols + 1);
+        const x = pad + gapX * (col + 1) + (r * 2) * col + r;
+        // базовая высота от дна с небольшим «случайным» разбросом
+        const rowsMax = Math.ceil(maxCoins / cols);
+        const usableRows = Math.max(1, Math.ceil(count / cols));
+        const baseY = bottomY - (row + 1) * (r * 2 + 2);
+        const y = Math.max(pad + r + 2, baseY);
+        const alpha = 0.82 - (row * 0.03);
+        return (
+          <g key={i}>
+            {/* монета */}
+            <circle cx={x} cy={y} r={r} fill={`rgba(255,92,92,${alpha})`} stroke="rgba(255,255,255,0.5)" strokeWidth="0.6" />
+            {/* блик */}
+            <ellipse cx={x - r/3} cy={y - r/3} rx={r/1.6} ry={r/2.2} fill="rgba(255,255,255,0.25)">
+              <animate attributeName="opacity" values="0.6;0.3;0.6" dur="2.2s" repeatCount="indefinite"/>
+            </ellipse>
+          </g>
+        );
+      });
+
+      return (
+        <g clipPath={`url(#vault-clip-${id})`}>
+          <rect x={pad} y={pad} width={innerW} height={innerH} rx="10" fill="rgba(255,255,255,0.06)" />
+          {/* теневая подложка уровня */}
+          <rect x={pad} y={fillY} width={innerW} height={fillH} fill="rgba(160,20,20,0.18)">
+            <animate attributeName="y" dur="0.9s" from={bottomY} to={fillY} fill="freeze" />
+            <animate attributeName="height" dur="0.9s" from={0} to={fillH} fill="freeze" />
+          </rect>
+          {coins}
+        </g>
+      );
+    }
+
+    // fallback: старая «жидкая» заливка
+    return (
+      <g clipPath={`url(#vault-clip-${id})`}>
+        <rect x={pad} y={pad} width={innerW} height={innerH} rx="10" fill="rgba(255,255,255,0.06)" />
+        <linearGradient id={`vault-red-${id}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="rgba(255,92,92,0.98)" />
+          <stop offset="100%" stopColor="rgba(160,20,20,0.95)" />
+        </linearGradient>
+        <rect x={pad} y={fillY} width={innerW} height={fillH} fill={`url(#vault-red-${id})`}>
+          <animate attributeName="y" dur="0.9s" from={bottomY} to={fillY} fill="freeze" />
+          <animate attributeName="height" dur="0.9s" from={0} to={fillH} fill="freeze" />
+        </rect>
+      </g>
+    );
+  };
 
   return (
-    <div className="card" style={{ overflow: "hidden" }}>
+    <div className="card" style={{ overflow:"hidden" }}>
       <div className="card-sec">
         <div className="row-b">
-          <div className="h2">Фонд Jetlag</div>
-          <div className="t-caption" style={{ opacity: .8 }}>
-            {updatedAt ? `обновлено: ${updatedAt}` : null}
-          </div>
+          <div className="h2">Фонд FMT.JETLAG</div>
+          <div className="t-caption" style={{ opacity:.8 }}>{updatedAt ? `обновлено: ${updatedAt}` : null}</div>
         </div>
 
         <div className="sp-2" />
 
-        {/* Сетка для ровного выравнивания сейфа и текста */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "minmax(200px, 220px) 1fr",
-            gap: 18,
-            alignItems: "center",
-          }}
-        >
-          {/* SVG сейф */}
-          <svg
-            width={BOX.w}
-            height={BOX.h}
-            viewBox={`0 0 ${BOX.w} ${BOX.h}`}
-            role="img"
-            aria-label="Фонд — сейф с заполняющейся камерой"
-            style={{ justifySelf: "center" }}
-          >
+        <div style={{ display:"grid", gridTemplateColumns:"minmax(200px,220px) 1fr", gap:18, alignItems:"center" }}>
+          {/* Сейф */}
+          <svg width={BOX.w} height={BOX.h} viewBox={`0 0 ${BOX.w} ${BOX.h}`} aria-label="Сейф фонда" style={{ justifySelf:"center" }}>
             <defs>
-              {/* красный градиент Jetlag */}
-              <linearGradient id={`vault-red-${id}`} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="rgba(255,92,92,0.98)" />
-                <stop offset="100%" stopColor="rgba(160,20,20,0.95)" />
-              </linearGradient>
-
-              {/* клип внутр. камеры */}
               <clipPath id={`vault-clip-${id}`}>
-                <rect
-                  x={innerPadding}
-                  y={innerPadding}
-                  width={innerW}
-                  height={innerH}
-                  rx={8}
-                  ry={8}
-                />
+                <rect x={pad} y={pad} width={innerW} height={innerH} rx={10} ry={10}/>
               </clipPath>
             </defs>
 
-            {/* Корпус сейфа */}
-            <rect
-              x="1"
-              y="1"
-              width={BOX.w - 2}
-              height={BOX.h - 2}
-              rx={BOX.r}
-              ry={BOX.r}
-              fill="rgba(0,0,0,0.45)"
-              stroke="rgba(255,255,255,0.25)"
-              strokeWidth="2"
-            />
+            {/* Корпус */}
+            <rect x="1" y="1" width={BOX.w-2} height={BOX.h-2} rx={BOX.r} ry={BOX.r} fill="rgba(0,0,0,0.45)" stroke="rgba(255,255,255,0.25)" strokeWidth="2"/>
+            <rect x="28" y={BOX.h-10} width="20" height="6" rx="3" fill="rgba(255,255,255,0.25)" opacity="0.35" />
+            <rect x={BOX.w-48} y={BOX.h-10} width="20" height="6" rx="3" fill="rgba(255,255,255,0.25)" opacity="0.35" />
 
-            {/* Ножки */}
-            <rect x="28" y={BOX.h - 10} width="20" height="6" rx="3" fill="rgba(255,255,255,0.25)" opacity="0.35" />
-            <rect x={BOX.w - 48} y={BOX.h - 10} width="20" height="6" rx="3" fill="rgba(255,255,255,0.25)" opacity="0.35" />
+            {/* Наполнение по варианту */}
+            {renderFill()}
 
-            {/* Внутренняя камера */}
-            <rect
-              x={innerPadding}
-              y={innerPadding}
-              width={innerW}
-              height={innerH}
-              rx={10}
-              ry={10}
-              fill="rgba(255,255,255,0.06)"
-              stroke="rgba(255,255,255,0.12)"
-            />
-
-            {/* Заливка (деньги) */}
-            <g clipPath={`url(#vault-clip-${id})`}>
-              <rect
-                x={innerPadding}
-                y={fillY}
-                width={innerW}
-                height={fillH}
-                fill={`url(#vault-red-${id})`}
-              >
-                <animate attributeName="y" dur="0.9s" from={bottomY} to={fillY} fill="freeze" />
-                <animate attributeName="height" dur="0.9s" from={0} to={fillH} fill="freeze" />
-              </rect>
-
-              {/* блик */}
-              <rect
-                x={innerPadding + 10}
-                y={fillY + 8}
-                width={Math.max(0, innerW - 40)}
-                height="6"
-                rx="3"
-                fill="rgba(255,255,255,0.18)"
-              />
-            </g>
-
-            {/* Дверь сейфа (круг) */}
-            <circle
-              cx={BOX.w - innerPadding - 44}
-              cy={innerPadding + 44}
-              r={30}
-              fill="rgba(0,0,0,0.5)"
-              stroke="rgba(255,255,255,0.35)"
-              strokeWidth="2"
-            />
-            {/* Рукоять (штурвал) */}
-            <g transform={`translate(${BOX.w - innerPadding - 44}, ${innerPadding + 44})`}>
+            {/* Дверь и штурвал */}
+            <circle cx={BOX.w - pad - 44} cy={pad + 44} r={30} fill="rgba(0,0,0,0.5)" stroke="rgba(255,255,255,0.35)" strokeWidth="2"/>
+            <g transform={`translate(${BOX.w - pad - 44}, ${pad + 44})`}>
               <circle r="4" fill="rgba(255,255,255,0.9)" />
               <line x1="-16" y1="0" x2="16" y2="0" stroke="rgba(255,255,255,0.8)" strokeWidth="2" />
               <line x1="0" y1="-16" x2="0" y2="16" stroke="rgba(255,255,255,0.8)" strokeWidth="2" />
               <line x1="-11.3" y1="-11.3" x2="11.3" y2="11.3" stroke="rgba(255,255,255,0.8)" strokeWidth="2" />
             </g>
-
-            {/* Шкала цели (слева) */}
-            <line
-              x1={innerPadding - 6}
-              y1={topY}
-              x2={innerPadding - 6}
-              y2={bottomY}
-              stroke="rgba(255,255,255,0.2)"
-            />
-            {/* метка 100% */}
-            <line
-              x1={innerPadding - 9}
-              y1={topY}
-              x2={innerPadding - 3}
-              y2={topY}
-              stroke="rgba(255,255,255,0.4)"
-              strokeWidth="2"
-            />
-            <text x={innerPadding - 12} y={topY - 6} fontSize="10" fill="rgba(255,255,255,0.65)" textAnchor="end">
-              {goal >= 1_000_000 ? `${Math.round(goal / 1_000_000)} млн` : goal.toLocaleString("ru-RU")}
-            </text>
           </svg>
 
-          {/* Текстовая часть */}
-          <div style={{ minWidth: 220, justifySelf: "center", textAlign: "left" }}>
-            <div className="t-caption" style={{ opacity: .85 }}>Баланс фонда</div>
-            <div className="h2" style={{ fontSize: 22, lineHeight: 1.15 }}>{fmtMoney(viewTotal)}</div>
+          {/* Текст */}
+          <div style={{ minWidth:220, justifySelf:"left", textAlign:"left" }}>
+            <div className="t-caption" style={{ opacity:.85, fontSize:18}}>Баланс</div>
+            <div className="h2" style={{ fontSize:22, lineHeight:1.15 }}>{fmt(viewTotal)}</div>
 
             <div className="sp-1" />
-            <div className="t-caption" style={{ opacity: .85 }}>Выделено креаторам</div>
-            <div className="t-body" style={{ fontWeight: 600 }}>{fmtMoney(viewSpent)}</div>
+            <div className="t-caption" style={{ opacity:.85 }}>Выделено креаторам</div>
+            <div className="t-body" style={{ fontWeight:600 }}>{fmt(viewSpent)}</div>
           </div>
         </div>
       </div>
 
-      {/* Кнопка «Подробнее» */}
       <div className="separator" />
       <div className="card-sec row-b">
         <div className="t-caption">Фонд формируется из подписок и пожертвований</div>
