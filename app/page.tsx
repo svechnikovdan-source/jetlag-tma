@@ -4,7 +4,16 @@ import React, { useEffect, useState, useId } from "react";
 const WHITE_CHAT_URL = process.env.NEXT_PUBLIC_WHITE_CHAT || "https://t.me/jetlagchat";
 
 /** ── Types ───────────────────────────────────────── */
-type Tab = "landing" | "home" | "missions" | "events" | "market" | "jetlag" | "profile" | "plans";
+type Tab =
+  | "landing"
+  | "home"
+  | "missions"
+  | "events"
+  | "market"
+  | "jetlag"
+  | "profile"
+  | "plans"
+  | "statuses";
 type StatusLevel = "WHITE" | "RED" | "BLACK";
 type PlanKey = "PLUS" | "PRO" | "STUDIO" | null;
 
@@ -22,9 +31,9 @@ const LEVELS: Record<StatusLevel, { next: StatusLevel | null; need: number | nul
 
 /** ── Fund data (demo) ───────────────────────────── */
 const FUND = {
-  total: 12_500_000,   // текущий баланс
-  spent: 5_000_000,    // уже выделено проектам
-  goal: 50_000_000,   // полный мешок = 50 млн
+  total: 12_500_000, // текущий баланс
+  spent: 5_000_000,  // уже выделено проектам
+  goal: 50_000_000,  // полный мешок = 50 млн
   updatedAt: "12.11.2025",
 };
 
@@ -129,27 +138,32 @@ const Button: React.FC<{ children: React.ReactNode; kind?: "primary" | "secondar
 );
 const Chip: React.FC<{ children: React.ReactNode }> = ({ children }) => <span className="chip">{children}</span>;
 
-/** ── FundBag (мешок с заливкой) ─────────────────── */
-const FundBag: React.FC<{ total: number; spent: number; goal: number; updatedAt?: string; }> = ({ total, spent, goal, updatedAt }) => {
+/** ── SafeVault (квадратный сейф с заливкой) ──────── */
+const SafeVault: React.FC<{
+  total: number;          // текущий баланс
+  spent: number;          // потрачено
+  goal: number;           // цель (полный сейф)
+  updatedAt?: string;
+}> = ({ total, spent, goal, updatedAt }) => {
   const id = useId();
-  const [currentTotal, setCurrentTotal] = useState(total);
-  const clamp = (v: number, a = 0, b = 1) => Math.max(a, Math.min(b, v));
-  const pct = clamp(currentTotal / goal);
 
-  // счётчики для плавного набора цифр
+  // Текущее «живое» значение баланса (демо-автоприращение)
+  const [currentTotal, setCurrentTotal] = useState(total);
+
+  // Анимированные отображаемые цифры
   const [viewTotal, setViewTotal] = useState(0);
   const [viewSpent, setViewSpent] = useState(0);
 
-  // демо-авторост: +50k каждые 2 сек до достижения цели
+  // Автоприращение: +5k каждые 2 секунды (ограничено goal)
   useEffect(() => {
-    const step = 5_000;
+    const step = 5_000;       // поменяй при желании
     const timer = setInterval(() => {
       setCurrentTotal(prev => (prev >= goal ? prev : Math.min(goal, prev + step)));
     }, 2000);
     return () => clearInterval(timer);
   }, [goal]);
 
-  // анимация чисел при изменении currentTotal / spent
+  // Плавная анимация чисел
   useEffect(() => {
     const dur = 900;
     const t0 = performance.now();
@@ -169,78 +183,178 @@ const FundBag: React.FC<{ total: number; spent: number; goal: number; updatedAt?
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentTotal, spent]);
 
-  // геометрия заливки
-  const W = 180, H = 200;
-  const innerTop = 38;
-  const innerBottom = 170;
-  const innerHeight = innerBottom - innerTop;
-  const fillHeight = Math.round(innerHeight * pct);
-  const fillY = innerBottom - fillHeight;
-  const fmt = (n: number) => `${n.toLocaleString("ru-RU")} ₽`;
+  // Геометрия сейфа
+  const BOX = { w: 200, h: 200, r: 16 };
+  const innerPadding = 18;           // внутренняя «камера» сейфа
+  const innerW = BOX.w - innerPadding * 2;
+  const innerH = BOX.h - innerPadding * 2;
+  const topY = innerPadding;
+  const bottomY = innerPadding + innerH;
+  const pct = Math.max(0, Math.min(1, currentTotal / goal));
+  const fillH = Math.round(innerH * pct);
+  const fillY = bottomY - fillH;
+
+  const fmtMoney = (n: number) =>
+    new Intl.NumberFormat("ru-RU", { style: "currency", currency: "RUB", maximumFractionDigits: 0 }).format(n);
 
   return (
     <div className="card" style={{ overflow: "hidden" }}>
       <div className="card-sec">
         <div className="row-b">
           <div className="h2">Фонд Jetlag</div>
-          <div className="t-caption" style={{ opacity: .8 }}>{updatedAt ? `обновлено: ${updatedAt}` : null}</div>
+          <div className="t-caption" style={{ opacity: .8 }}>
+            {updatedAt ? `обновлено: ${updatedAt}` : null}
+          </div>
         </div>
 
         <div className="sp-2" />
 
-        {/* выравнивание: сетка 2 колонки на широких, одна колонка на узких */}
+        {/* Сетка для ровного выравнивания сейфа и текста */}
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "minmax(180px, 200px) 1fr",
+            gridTemplateColumns: "minmax(200px, 220px) 1fr",
             gap: 18,
             alignItems: "center",
           }}
         >
-          {/* SVG мешок */}
-          <svg width={W} height={H} viewBox="0 0 180 200" role="img" aria-label="Фонд — мешок с деньгами" style={{ justifySelf: "center" }}>
+          {/* SVG сейф */}
+          <svg
+            width={BOX.w}
+            height={BOX.h}
+            viewBox={`0 0 ${BOX.w} ${BOX.h}`}
+            role="img"
+            aria-label="Фонд — сейф с заполняющейся камерой"
+            style={{ justifySelf: "center" }}
+          >
             <defs>
-              <clipPath id={`bag-clip-${id}`}>
-                <path d="M 30 80 C 28 120, 35 165, 90 170 C 145 165, 152 120, 150 80 C 150 65, 135 55, 120 48 C 105 42, 75 42, 60 48 C 45 55, 30 65, 30 80 Z" />
-              </clipPath>
-              {/* красный джетлаг-градиент */}
-              <linearGradient id="grad-money" x1="0" y1="0" x2="0" y2="1">
+              {/* красный градиент Jetlag */}
+              <linearGradient id={`vault-red-${id}`} x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="rgba(255,92,92,0.98)" />
                 <stop offset="100%" stopColor="rgba(160,20,20,0.95)" />
               </linearGradient>
+
+              {/* клип внутр. камеры */}
+              <clipPath id={`vault-clip-${id}`}>
+                <rect
+                  x={innerPadding}
+                  y={innerPadding}
+                  width={innerW}
+                  height={innerH}
+                  rx={8}
+                  ry={8}
+                />
+              </clipPath>
             </defs>
 
-            <g clipPath={`url(#bag-clip-${id})`}>
-              <rect x="20" y="40" width="140" height="140" fill="rgba(255,255,255,0.06)" />
-              <rect x="20" y={fillY} width="140" height={fillHeight} fill="url(#grad-money)">
-                <animate attributeName="y" dur="0.9s" from={innerBottom} to={fillY} fill="freeze" />
-                <animate attributeName="height" dur="0.9s" from={0} to={fillHeight} fill="freeze" />
+            {/* Корпус сейфа */}
+            <rect
+              x="1"
+              y="1"
+              width={BOX.w - 2}
+              height={BOX.h - 2}
+              rx={BOX.r}
+              ry={BOX.r}
+              fill="rgba(0,0,0,0.45)"
+              stroke="rgba(255,255,255,0.25)"
+              strokeWidth="2"
+            />
+
+            {/* Ножки */}
+            <rect x="28" y={BOX.h - 10} width="20" height="6" rx="3" fill="rgba(255,255,255,0.25)" opacity="0.35" />
+            <rect x={BOX.w - 48} y={BOX.h - 10} width="20" height="6" rx="3" fill="rgba(255,255,255,0.25)" opacity="0.35" />
+
+            {/* Внутренняя камера */}
+            <rect
+              x={innerPadding}
+              y={innerPadding}
+              width={innerW}
+              height={innerH}
+              rx={10}
+              ry={10}
+              fill="rgba(255,255,255,0.06)"
+              stroke="rgba(255,255,255,0.12)"
+            />
+
+            {/* Заливка (деньги) */}
+            <g clipPath={`url(#vault-clip-${id})`}>
+              <rect
+                x={innerPadding}
+                y={fillY}
+                width={innerW}
+                height={fillH}
+                fill={`url(#vault-red-${id})`}
+              >
+                <animate attributeName="y" dur="0.9s" from={bottomY} to={fillY} fill="freeze" />
+                <animate attributeName="height" dur="0.9s" from={0} to={fillH} fill="freeze" />
               </rect>
-              <rect x="26" y={fillY + 6} width="60" height="6" fill="rgba(255,255,255,0.18)" rx="3" />
+
+              {/* блик */}
+              <rect
+                x={innerPadding + 10}
+                y={fillY + 8}
+                width={Math.max(0, innerW - 40)}
+                height="6"
+                rx="3"
+                fill="rgba(255,255,255,0.18)"
+              />
             </g>
 
-            {/* горловина и контур */}
-            <path d="M 60 40 C 75 35, 105 35, 120 40 C 122 48, 122 48, 120 54 C 105 50, 75 50, 60 54 C 58 48, 58 48, 60 40 Z" fill="rgba(0,0,0,0.45)" stroke="rgba(255,255,255,0.22)" strokeWidth="1" />
-            <rect x="58" y="52" width="64" height="7" rx="3.5" fill="rgba(0,0,0,0.55)" />
-            <path d="M 30 80 C 28 120, 35 165, 90 170 C 145 165, 152 120, 150 80 C 150 65, 135 55, 120 48 C 105 42, 75 42, 60 48 C 45 55, 30 65, 30 80 Z" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="2" />
+            {/* Дверь сейфа (круг) */}
+            <circle
+              cx={BOX.w - innerPadding - 44}
+              cy={innerPadding + 44}
+              r={30}
+              fill="rgba(0,0,0,0.5)"
+              stroke="rgba(255,255,255,0.35)"
+              strokeWidth="2"
+            />
+            {/* Рукоять (штурвал) */}
+            <g transform={`translate(${BOX.w - innerPadding - 44}, ${innerPadding + 44})`}>
+              <circle r="4" fill="rgba(255,255,255,0.9)" />
+              <line x1="-16" y1="0" x2="16" y2="0" stroke="rgba(255,255,255,0.8)" strokeWidth="2" />
+              <line x1="0" y1="-16" x2="0" y2="16" stroke="rgba(255,255,255,0.8)" strokeWidth="2" />
+              <line x1="-11.3" y1="-11.3" x2="11.3" y2="11.3" stroke="rgba(255,255,255,0.8)" strokeWidth="2" />
+            </g>
+
+            {/* Шкала цели (слева) */}
+            <line
+              x1={innerPadding - 6}
+              y1={topY}
+              x2={innerPadding - 6}
+              y2={bottomY}
+              stroke="rgba(255,255,255,0.2)"
+            />
+            {/* метка 100% */}
+            <line
+              x1={innerPadding - 9}
+              y1={topY}
+              x2={innerPadding - 3}
+              y2={topY}
+              stroke="rgba(255,255,255,0.4)"
+              strokeWidth="2"
+            />
+            <text x={innerPadding - 12} y={topY - 6} fontSize="10" fill="rgba(255,255,255,0.65)" textAnchor="end">
+              {goal >= 1_000_000 ? `${Math.round(goal / 1_000_000)} млн` : goal.toLocaleString("ru-RU")}
+            </text>
           </svg>
 
-          {/* Текстовый блок */}
+          {/* Текстовая часть */}
           <div style={{ minWidth: 220, justifySelf: "center", textAlign: "left" }}>
             <div className="t-caption" style={{ opacity: .85 }}>Баланс фонда</div>
-            <div className="h2" style={{ fontSize: 22, lineHeight: 1.15 }}>{fmt(viewTotal)}</div>
+            <div className="h2" style={{ fontSize: 22, lineHeight: 1.15 }}>{fmtMoney(viewTotal)}</div>
 
             <div className="sp-1" />
-            <div className="t-caption" style={{ opacity: .85 }}>Выделено проектам</div>
-            <div className="t-body" style={{ fontWeight: 600 }}>{fmt(viewSpent)}</div>
+            <div className="t-caption" style={{ opacity: .85 }}>Выделено креаторам</div>
+            <div className="t-body" style={{ fontWeight: 600 }}>{fmtMoney(viewSpent)}</div>
           </div>
         </div>
       </div>
 
-      {/* кнопка «Подробнее» */}
+      {/* Кнопка «Подробнее» */}
       <div className="separator" />
       <div className="card-sec row-b">
-        <div className="t-caption">Фонд формируется из подписок. Ежемесячные отчёты — скоро.</div>
+        <div className="t-caption">Фонд формируется из подписок и пожертвований</div>
         <Button kind="secondary" size="s" onClick={() => alert("Страница прозрачности (демо)")}>Подробнее</Button>
       </div>
     </div>
@@ -248,8 +362,10 @@ const FundBag: React.FC<{ total: number; spent: number; goal: number; updatedAt?
 };
 
 /** ── Top bar ─────────────────────────────────────── */
-const TopBar: React.FC<{ onProfile: () => void; onSettings: () => void; onOpenPlans: () => void; status: StatusLevel; plan: PlanKey; }> =
-({ onProfile, onSettings, onOpenPlans, status, plan }) => (
+const TopBar: React.FC<{
+  onProfile: () => void; onSettings: () => void; onOpenPlans: () => void; onOpenStatuses: () => void;
+  status: StatusLevel; plan: PlanKey;
+}> = ({ onProfile, onSettings, onOpenPlans, onOpenStatuses, status, plan }) => (
   <div className="pad-x" style={{ position:"sticky", top:0, zIndex:30, backdropFilter:"saturate(180%) blur(14px)", background:"rgba(0,0,0,.55)", borderBottom:"1px solid var(--line)" }}>
     <div className="sp-3" />
     <div className="row-b">
@@ -265,8 +381,8 @@ const TopBar: React.FC<{ onProfile: () => void; onSettings: () => void; onOpenPl
         <span style={{ fontSize:12, fontWeight:600, color:"white" }}>Даниил</span>
       </button>
       <div className="row" style={{ gap:8 }}>
-        <Chip>{status}</Chip>
-        <button className="chip" onClick={onOpenPlans} title="Управление подпиской">{plan ?? "нет плана"}</button>
+        <button className="chip" onClick={onOpenStatuses} title="Подробнее о статусах">{status}</button>
+        <button className="chip" onClick={onOpenPlans} title="Управление подпиской">{plan ?? "Free"}</button>
       </div>
     </div>
     <div className="sp-2" />
@@ -312,9 +428,9 @@ const HomeScreen: React.FC<{ go: React.Dispatch<React.SetStateAction<Tab>>; stat
       <div style={{ position:"relative", zIndex:1 }}>
         <Hero />
 
-        {/* ── Фонд Jetlag ───────────────────────────── */}
+        {/* Фонд */}
         <div className="sp-3" />
-        <FundBag total={FUND.total} spent={FUND.spent} goal={FUND.goal} updatedAt={FUND.updatedAt} />
+        <SafeVault total={FUND.total} spent={FUND.spent} goal={FUND.goal} updatedAt={FUND.updatedAt} />
 
         {/* Миссии */}
         <div className="sp-4" />
@@ -660,6 +776,107 @@ const ProfileScreen: React.FC<{ status: StatusLevel; plan: PlanKey; jetpoints: n
   );
 };
 
+/** ── Statuses Screen ─────────────────────────────── */
+const statusColors = {
+  WHITE: { border: "1px solid var(--line)", bg: "rgba(255,255,255,.02)", accent: "var(--text)" },
+  RED:   { border: "1px solid rgba(255,80,80,.45)", bg: "rgba(255,40,40,.08)", accent: "rgb(255,90,90)" },
+  BLACK: { border: "1px solid rgba(255,255,255,.25)", bg: "linear-gradient(180deg, rgba(255,255,255,.06), rgba(0,0,0,.35))", accent: "rgba(220,220,220,.9)" },
+};
+
+const StatusCard: React.FC<{
+  level: StatusLevel;
+  title: string;
+  subtitle: string;
+  bullets: string[];
+  action: { label: string; onClick: () => void } | null;
+}> = ({ level, title, subtitle, bullets, action }) => {
+  const sty = statusColors[level];
+  return (
+    <div className="card" style={{ border: sty.border, background: sty.bg }}>
+      <div className="card-sec">
+        <div className="row-b">
+          <div className="h2" style={{ color: sty.accent }}>{title}</div>
+          <span className="chip" style={{ borderColor: "transparent", background: "rgba(0,0,0,.35)" }}>{level}</span>
+        </div>
+        <div className="sp-1" />
+        <div className="t-caption" style={{ opacity:.9 }}>{subtitle}</div>
+        <div className="sp-2" />
+        <ul className="t-body" style={{ display:"grid", gap:6, paddingLeft:18 }}>
+          {bullets.map((b, i) => <li key={i}>{b}</li>)}
+        </ul>
+        {action && (
+          <>
+            <div className="sp-3" />
+            <Button size="m" kind="secondary" onClick={action.onClick}>{action.label}</Button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const StatusesScreen: React.FC<{ go: React.Dispatch<React.SetStateAction<Tab>> }> = ({ go }) => {
+  return (
+    <div className="page pad fade-in">
+      <div className="row-b">
+        <div className="h2">Статусы</div>
+        <div className="t-caption">Как растёт твой уровень участия</div>
+      </div>
+      <div className="sp-3" />
+      <div className="list">
+        <StatusCard
+          level="WHITE"
+          title="WHITE — вход в экосистему"
+          subtitle="Базовый статус для новых участников"
+          bullets={[
+            "Доступ к Jetlag Hub и Jetlag Daily",
+            "Участие в миссиях уровня WHITE",
+            "Стартовый набор активностей и XP",
+            "Переход в RED при 10 000 JP",
+          ]}
+          action={null}
+        />
+        <StatusCard
+          level="RED"
+          title="RED — активные креаторы"
+          subtitle="Больше миссий и приоритеты"
+          bullets={[
+            "Доступ к WHITE и RED миссиям",
+            "Приоритет в откликах и модерации",
+            "Ранний доступ к ивентам",
+            "Движение к BLACK при 100 000 JP",
+          ]}
+          action={null}
+        />
+        <StatusCard
+          level="BLACK"
+          title="BLACK — легенды и лидеры"
+          subtitle="Для заметных деятелей индустрии"
+          bullets={[
+            "Для BLACK не нужны подписки",
+            "Доступ ко всему и сразу",
+            "Отбор: не только баллы, но и вклад в индустрию",
+            "Амбассадорские возможности и особые ивенты",
+          ]}
+          action={null}
+        />
+      </div>
+
+      <div className="sp-4" />
+      <div className="card">
+        <div className="card-sec">
+          <div className="h2">Как растёт статус</div>
+          <div className="sp-2" />
+          <div className="t-caption">
+            Набирай JetPoints за миссии, активности и вклад в коммьюнити.<br/>
+            WHITE → 10 000 JP = RED. RED → 100 000 JP = заявка на BLACK (с рассмотрением).
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 /** ── Landing ─────────────────────────────────────── */
 const LandingScreen: React.FC<{ onEnterHub: () => void; onOpenWhite: () => void }> =
 ({ onEnterHub, onOpenWhite }) => (
@@ -678,9 +895,9 @@ const LandingScreen: React.FC<{ onEnterHub: () => void; onOpenWhite: () => void 
 );
 
 /** ── Plans ───────────────────────────────────────── */
-type PlanCard = { key: PlanKey | "FREE"; title: string; price: string; subtitle: string; features: string[]; best?: boolean; };
+type PlanCardT = { key: PlanKey | "FREE"; title: string; price: string; subtitle: string; features: string[]; best?: boolean; };
 
-const PLAN_CARDS: PlanCard[] = [
+const PLAN_CARDS: PlanCardT[] = [
   { key:"FREE",  title:"Free",  price:"₽0 / месяц",      subtitle:"Базовый доступ",              features:["Доступ к Jetlag Hub и Daily","Участие в миссиях уровня WHITE","Профиль и JetPoints"] },
   { key:"PLUS",  title:"Plus",  price:"₽1 000 / месяц",  subtitle:"Больше доступа к экосистеме", features:["Расширенные миссии","Приоритет в откликах","Ежемесячные бонус-миссии + XP буст","Ранний доступ к ивентам"], best:true },
   { key:"PRO",   title:"Pro",   price:"₽5 000 / месяц",  subtitle:"Для активных креаторов",      features:["Все из Plus", "Доступ в усадьбу джетлаг","Скидки на продукты экосистемы", "PRO-миссии с кэш-гонорарами","Больше слотов на отклики","Приоритетная модерация и поддержка"] },
@@ -823,6 +1040,7 @@ export default function App(){
           onProfile={()=>setTab("profile")}
           onSettings={()=>alert("Настройки (демо)")}
           onOpenPlans={()=>setTab("plans")}
+          onOpenStatuses={()=>setTab("statuses")}
         />
       )}
 
@@ -839,6 +1057,7 @@ export default function App(){
           onChoose={(p) => { setPlan(p); setTab("profile"); }}
         />
       )}
+      {tab === "statuses" && <StatusesScreen go={setTab} />}
 
       {tab !== "landing" && <BottomNav tab={tab} onChange={setTab} />}
     </>
