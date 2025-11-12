@@ -1,20 +1,13 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useId } from "react";
 
 const WHITE_CHAT_URL = process.env.NEXT_PUBLIC_WHITE_CHAT || "https://t.me/jetlagchat";
 
 /** ── Types ───────────────────────────────────────── */
-type Tab =
-  | "landing"
-  | "home"
-  | "missions"
-  | "events"
-  | "market"
-  | "jetlag"
-  | "profile"
-  | "plans";
+type Tab = "landing" | "home" | "missions" | "events" | "market" | "jetlag" | "profile" | "plans";
 type StatusLevel = "WHITE" | "RED" | "BLACK";
 type PlanKey = "PLUS" | "PRO" | "STUDIO" | null;
+
 const rank = (s: StatusLevel) => (s === "WHITE" ? 1 : s === "RED" ? 2 : 3);
 const planRank = (p: Exclude<PlanKey, null>) => (p === "PLUS" ? 1 : p === "PRO" ? 2 : 3);
 const hasPlan = (user: PlanKey, need: Exclude<PlanKey, null> | null) =>
@@ -27,9 +20,13 @@ const LEVELS: Record<StatusLevel, { next: StatusLevel | null; need: number | nul
   BLACK: { next: null,    need: null },
 };
 
-/** Форматирование денег */
-const money = (n: number) =>
-  new Intl.NumberFormat("ru-RU", { style: "currency", currency: "RUB", maximumFractionDigits: 0 }).format(n);
+/** ── Fund data (demo) ───────────────────────────── */
+const FUND = {
+  total: 12_500_000,   // текущий баланс
+  spent: 5_000_000,    // уже выделено проектам
+  goal: 100_000_000,   // полный мешок = 100 млн
+  updatedAt: "12.11.2025",
+};
 
 /** ── Inline icons ────────────────────────────────── */
 const Icon = {
@@ -70,7 +67,7 @@ const Icon = {
   ),
   Lock: () => (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V8a5 5 0 0 1 10 0в3"/>
+      <rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V8a5 5 0 0 1 10 0v3"/>
     </svg>
   ),
 };
@@ -90,23 +87,6 @@ type EventItem = {
 type MarketItem = { id: string; type: "SERVICE" | "PRODUCT"; title: string; price: number; owner: string };
 type DailyItem = { id: string; title: string; tag: string; action?: string };
 
-/** ── FUND: деньги из подписок ─────────────────────── */
-type FundAllocation = { id: string; title: string; amount: number; note?: string; link?: string };
-const FUND = {
-  total: 2_450_000,                        // ← общая сумма фонда (RUB)
-  updatedAt: "11.11.2025",                // ← дата обновления
-  allocations: [
-    { id: "fa1", title: "Jetlag Padel — запуск", amount: 900_000, note: "инвентарь, 3D и рендеры" },
-    { id: "fa2", title: "Jetlag Film — постпродакшн", amount: 620_000, note: "графика и озвучание" },
-    { id: "fa3", title: "Waterr — упаковка и тест-партия", amount: 380_000 },
-    { id: "fa4", title: "Bluora — формулы v2 и формы", amount: 250_000 },
-    { id: "fa5", title: "Jetlag Estate — прототип AR-тура", amount: 160_000 },
-  ] as FundAllocation[],
-};
-const allocatedSum = FUND.allocations.reduce((s, a) => s + a.amount, 0);
-const reservedRest = Math.max(FUND.total - allocatedSum, 0);
-
-/** ── Static demo content ─────────────────────────── */
 const MISSIONS: Mission[] = [
   { id:"m1", brand:"FMT.JETLAG", title:"Рефреш айдентики для FMT.JETLAG Padel", deadline:"14.11.2025", tags:["design","branding"], rewards:{jetpoints:250, cash:"50 000 ₽"}, minStatus:"WHITE", requiredPlan:null },
   { id:"m2", brand:"Косметика", title:"UGC-кампания: Travel-skin ритуалы", deadline:"21.11.2025", tags:["video","ugc"], rewards:{jetpoints:150, cash:"по результату"}, minStatus:"WHITE", requiredPlan:"PLUS" },
@@ -141,20 +121,105 @@ const DAILY: DailyItem[] = [
 ];
 
 /** ── UI primitives ───────────────────────────────── */
-const Button: React.FC<{
-  children: React.ReactNode; kind?: "primary" | "secondary" | "ghost"; size?: "s" | "m"; onClick?: () => void; className?: string;
-}> = ({ children, kind = "primary", size = "m", onClick, className }) => (
+const Button: React.FC<{ children: React.ReactNode; kind?: "primary" | "secondary" | "ghost"; size?: "s" | "m"; onClick?: () => void; className?: string; }> =
+({ children, kind = "primary", size = "m", onClick, className }) => (
   <button className={`btn ${size === "s" ? "btn-s" : ""} ${kind === "secondary" ? "btn-sec" : kind === "ghost" ? "btn-ghost" : ""} ${className || ""}`} onClick={onClick}>
     {children}
   </button>
 );
 const Chip: React.FC<{ children: React.ReactNode }> = ({ children }) => <span className="chip">{children}</span>;
 
+/** ── FundBag (мешок с заливкой) ─────────────────── */
+const FundBag: React.FC<{ total: number; spent: number; goal: number; updatedAt?: string; }> = ({ total, spent, goal, updatedAt }) => {
+  const id = useId();
+  const clamp = (v: number, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+  const pct = clamp(total / goal);
+  const [viewTotal, setViewTotal] = useState(0);
+  const [viewSpent, setViewSpent] = useState(0);
+
+  useEffect(() => {
+    const dur = 900;
+    const t0 = performance.now();
+    const startT = viewTotal, startS = viewSpent;
+    const diffT = total - startT;
+    const diffS = spent - startS;
+    let raf = 0;
+    const tick = (t: number) => {
+      const k = Math.min(1, (t - t0) / dur);
+      const ease = 1 - Math.pow(1 - k, 3);
+      setViewTotal(Math.round(startT + diffT * ease));
+      setViewSpent(Math.round(startS + diffS * ease));
+      if (k < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [total, spent]);
+
+  const W = 180, H = 200;
+  const innerTop = 38;
+  const innerBottom = 170;
+  const innerHeight = innerBottom - innerTop;
+  const fillHeight = Math.round(innerHeight * pct);
+  const fillY = innerBottom - fillHeight;
+  const fmt = (n: number) => `${n.toLocaleString("ru-RU")} ₽`;
+
+  return (
+    <div className="card" style={{ overflow: "hidden" }}>
+      <div className="card-sec">
+        <div className="row-b">
+          <div className="h2">Фонд Jetlag</div>
+          <div className="t-caption" style={{ opacity: .8 }}>{updatedAt ? `обновлено: ${updatedAt}` : null}</div>
+        </div>
+
+        <div className="sp-2" />
+
+        <div className="row" style={{ gap: 16, alignItems: "center", flexWrap: "wrap" }}>
+          <svg width={W} height={H} viewBox="0 0 180 200" role="img" aria-label="Фонд — мешок с деньгами" style={{ display: "block" }}>
+            <defs>
+              <clipPath id={`bag-clip-${id}`}>
+                <path d="M 30 80 C 28 120, 35 165, 90 170 C 145 165, 152 120, 150 80 C 150 65, 135 55, 120 48 C 105 42, 75 42, 60 48 C 45 55, 30 65, 30 80 Z" />
+              </clipPath>
+              <linearGradient id="grad-money" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="rgba(144,238,144,0.95)" />
+                <stop offset="100%" stopColor="rgba(46,204,113,0.9)" />
+              </linearGradient>
+            </defs>
+
+            <g clipPath={`url(#bag-clip-${id})`}>
+              <rect x="20" y="40" width="140" height="140" fill="rgba(255,255,255,0.06)" />
+              <rect x="20" y={fillY} width="140" height={fillHeight} fill="url(#grad-money)">
+                <animate attributeName="y" dur="0.9s" from={innerBottom} to={fillY} fill="freeze" />
+                <animate attributeName="height" dur="0.9s" from={0} to={fillHeight} fill="freeze" />
+              </rect>
+              <rect x="26" y={fillY + 6} width="60" height="6" fill="rgba(255,255,255,0.18)" rx="3" />
+            </g>
+
+            <path d="M 60 40 C 75 35, 105 35, 120 40 C 122 48, 122 48, 120 54 C 105 50, 75 50, 60 54 C 58 48, 58 48, 60 40 Z" fill="rgba(0,0,0,0.45)" stroke="rgba(255,255,255,0.22)" strokeWidth="1" />
+            <rect x="58" y="52" width="64" height="7" rx="3.5" fill="rgba(0,0,0,0.55)" />
+            <path d="M 30 80 C 28 120, 35 165, 90 170 C 145 165, 152 120, 150 80 C 150 65, 135 55, 120 48 C 105 42, 75 42, 60 48 C 45 55, 30 65, 30 80 Z" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="2" />
+            <line x1="152" x2="170" y1={innerTop} y2={innerTop} stroke="rgba(255,255,255,0.25)" strokeWidth="1.5" />
+            <text x="172" y={innerTop + 4} fill="rgba(255,255,255,0.65)" fontSize="10">100 млн</text>
+          </svg>
+
+          <div style={{ minWidth: 220 }}>
+            <div className="t-caption" style={{ opacity: .85 }}>Баланс фонда</div>
+            <div className="h2" style={{ fontSize: 22, lineHeight: 1.15 }}>{fmt(viewTotal)}</div>
+            <div className="sp-1" />
+            <div className="t-caption" style={{ opacity: .85 }}>Выделено проектам</div>
+            <div className="t-body" style={{ fontWeight: 600 }}>{fmt(viewSpent)}</div>
+            <div className="sp-1" />
+            <div className="t-caption" style={{ opacity: .8 }}>Прогресс: {(pct * 100).toFixed(1)}% к цели 100&nbsp;млн</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 /** ── Top bar ─────────────────────────────────────── */
-const TopBar: React.FC<{
-  onProfile: () => void; onSettings: () => void; onOpenPlans: () => void;
-  status: StatusLevel; plan: PlanKey;
-}> = ({ onProfile, onSettings, onOpenPlans, status, plan }) => (
+const TopBar: React.FC<{ onProfile: () => void; onSettings: () => void; onOpenPlans: () => void; status: StatusLevel; plan: PlanKey; }> =
+({ onProfile, onSettings, onOpenPlans, status, plan }) => (
   <div className="pad-x" style={{ position:"sticky", top:0, zIndex:30, backdropFilter:"saturate(180%) blur(14px)", background:"rgba(0,0,0,.55)", borderBottom:"1px solid var(--line)" }}>
     <div className="sp-3" />
     <div className="row-b">
@@ -171,9 +236,7 @@ const TopBar: React.FC<{
       </button>
       <div className="row" style={{ gap:8 }}>
         <Chip>{status}</Chip>
-        <button className="chip" onClick={onOpenPlans} title="Управление подпиской">
-          {plan ?? "нет плана"}
-        </button>
+        <button className="chip" onClick={onOpenPlans} title="Управление подпиской">{plan ?? "нет плана"}</button>
       </div>
     </div>
     <div className="sp-2" />
@@ -210,51 +273,6 @@ const Hero: React.FC = () => (
   <div className="card"><div className="card-sec"><div className="h2" style={{ fontSize:18 }}>Empowering talents to<br/>bring value through content</div></div></div>
 );
 
-/** ── FUND CARD (на главной) ──────────────────────── */
-const FundCard: React.FC = () => {
-  const total = FUND.total;
-  const items = [...FUND.allocations, { id: "rest", title: "Резерв фонда", amount: reservedRest, note: "не распределено" }];
-  const calcPct = (amount: number) => (total > 0 ? Math.round((amount / total) * 100) : 0);
-
-  return (
-    <div className="card" role="region" aria-label="Фонд FMT.JETLAG: баланс и распределение">
-      <div className="card-sec">
-        <div className="row-b">
-          <div className="h2">Фонд</div>
-          <div className="t-caption">Обновлено: {FUND.updatedAt}</div>
-        </div>
-        <div className="sp-1" />
-        <div className="row-b" style={{ alignItems:"baseline" }}>
-          <div className="h2" style={{ fontSize:22 }}>{money(total)}</div>
-          <div className="t-caption">Всего собранно из подписок</div>
-        </div>
-      </div>
-      <div className="separator" />
-      <div className="card-sec" style={{ display:"grid", gap:12 }}>
-        {items.map((a) => {
-          const pct = calcPct(a.amount);
-          return (
-            <div key={a.id}>
-              <div className="row-b" style={{ gap:10 }}>
-                <div className="t-body">{a.title}{a.note ? ` — ${a.note}` : ""}</div>
-                <div className="t-caption">{money(a.amount)} • {pct}%</div>
-              </div>
-              <div className="bar" aria-hidden style={{ position:"relative", height:8, background:"rgba(255,255,255,.08)", borderRadius:999, overflow:"hidden", marginTop:6 }}>
-                <div style={{ width:`${pct}%`, height:"100%", background:"rgba(255,255,255,.45)" }} />
-              </div>
-            </div>
-          );
-        })}
-      </div>
-      <div className="separator" />
-      <div className="card-sec row-b">
-        <div className="t-caption">Полн. прозрачность: ежемесячные отчёты</div>
-        <Button kind="secondary" size="s" onClick={() => alert("Страница прозрачности (демо)")}>Подробнее</Button>
-      </div>
-    </div>
-  );
-};
-
 const HomeScreen: React.FC<{ go: React.Dispatch<React.SetStateAction<Tab>>; status: StatusLevel; plan: PlanKey; }> =
 ({ go, status, plan }) => {
   const canSee = (m: Mission) => rank(status) >= rank(m.minStatus) && hasPlan(plan, m.requiredPlan);
@@ -264,9 +282,9 @@ const HomeScreen: React.FC<{ go: React.Dispatch<React.SetStateAction<Tab>>; stat
       <div style={{ position:"relative", zIndex:1 }}>
         <Hero />
 
-        {/* === ФОНД: баланс и распределение === */}
+        {/* ── Фонд Jetlag ───────────────────────────── */}
         <div className="sp-3" />
-        <FundCard />
+        <FundBag total={FUND.total} spent={FUND.spent} goal={FUND.goal} updatedAt={FUND.updatedAt} />
 
         {/* Миссии */}
         <div className="sp-4" />
@@ -374,9 +392,7 @@ const MissionsScreen: React.FC<{ status: StatusLevel; plan: PlanKey; }> = ({ sta
 };
 
 const EventsScreen: React.FC<{ status: StatusLevel; plan: PlanKey; }> = ({ status, plan }) => {
-  const items = EVENTS.filter(
-    e => rank(status) >= rank(e.access.minStatus) && hasPlan(plan, e.access.plan as Exclude<PlanKey, null> | null)
-  );
+  const items = EVENTS.filter(e => rank(status) >= rank(e.access.minStatus) && hasPlan(plan, e.access.plan as Exclude<PlanKey, null> | null));
   return (
     <div className="page pad fade-in">
       <div className="h2">Афиша</div>
@@ -508,18 +524,13 @@ const JetlagHub: React.FC<{ go: React.Dispatch<React.SetStateAction<Tab>> }> = (
 );
 
 /** ── Профиль ─────────────────────────────────────── */
-const ProfileScreen: React.FC<{
-  status: StatusLevel; plan: PlanKey; jetpoints: number; next: number; onSettings: () => void;
-}> = ({ status, plan, jetpoints }) => {
+const ProfileScreen: React.FC<{ status: StatusLevel; plan: PlanKey; jetpoints: number; next: number; onSettings: () => void; }> =
+({ status, plan, jetpoints }) => {
   const profile = { username: "Привет, Даниил!", city: "Москва", role: "Продюсер" };
-
   const target = LEVELS[status].need;
   const pct = status === "BLACK" ? 1 : Math.min(1, (jetpoints || 0) / (target || 1));
   const pctPercent = Math.round(pct * 100);
-
-  const statusColor =
-    status === "RED" ? "var(--red)" :
-    status === "BLACK" ? "var(--muted)" : "var(--text)";
+  const statusColor = status === "RED" ? "var(--red)" : status === "BLACK" ? "var(--muted)" : "var(--text)";
 
   return (
     <div className="page pad fade-in">
@@ -640,10 +651,10 @@ const LandingScreen: React.FC<{ onEnterHub: () => void; onOpenWhite: () => void 
 type PlanCard = { key: PlanKey | "FREE"; title: string; price: string; subtitle: string; features: string[]; best?: boolean; };
 
 const PLAN_CARDS: PlanCard[] = [
-  { key:"FREE",  title:"Free",  price:"₽0 / месяц",      subtitle:"Базовый доступ",                 features:["Доступ к Jetlag Hub и Daily","Участие в миссиях уровня WHITE","Профиль и JetPoints"] },
-  { key:"PLUS",  title:"Plus",  price:"₽1 000 / месяц",  subtitle:"Больше доступа к экосистеме",    features:["Расширенные миссии","Приоритет в откликах","Ежемесячные бонус-миссии + XP буст","Ранний доступ к ивентам"], best:true },
-  { key:"PRO",   title:"Pro",   price:"₽5 000 / месяц",  subtitle:"Для активных креаторов",         features:["Все из Plus", "Доступ в усадьбу джетлаг","Скидки на продукты экосистемы", "PRO-миссии с кэш-гонорарами","Больше слотов на отклики","Приоритетная модерация и поддержка"] },
-  { key:"STUDIO",title:"Studio",price:"дог.",            subtitle:"Команды/студии",                  features:["Командные роли и доступы","Биллинг и отчёты","Корпоративные миссии","Консьерж и кастомные интеграции"] },
+  { key:"FREE",  title:"Free",  price:"₽0 / месяц",      subtitle:"Базовый доступ",              features:["Доступ к Jetlag Hub и Daily","Участие в миссиях уровня WHITE","Профиль и JetPoints"] },
+  { key:"PLUS",  title:"Plus",  price:"₽1 000 / месяц",  subtitle:"Больше доступа к экосистеме", features:["Расширенные миссии","Приоритет в откликах","Ежемесячные бонус-миссии + XP буст","Ранний доступ к ивентам"], best:true },
+  { key:"PRO",   title:"Pro",   price:"₽5 000 / месяц",  subtitle:"Для активных креаторов",      features:["Все из Plus", "Доступ в усадьбу джетлаг","Скидки на продукты экосистемы", "PRO-миссии с кэш-гонорарами","Больше слотов на отклики","Приоритетная модерация и поддержка"] },
+  { key:"STUDIO",title:"Studio",price:"дог.",            subtitle:"Команды/студии",               features:["Командные роли и доступы","Биллинг и отчёты","Корпоративные миссии","Консьерж и кастомные интеграции"] },
 ];
 
 const PlansScreen: React.FC<{ current: PlanKey; onChoose: (p: PlanKey) => void; }> =
@@ -713,10 +724,8 @@ const OnboardingSurvey: React.FC<{ onDone: () => void }> = ({ onDone }) => {
   const valid = name.trim().length > 1 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const submit = () => {
     if (!valid) return alert(lang === "ru" ? "Заполните имя и email" : "Fill name and email");
-    try {
-      localStorage.setItem("jl_survey_done", "1");
-      onDone();
-    } catch { alert(lang === "ru" ? "Не удалось отправить." : "Failed to submit."); }
+    try { localStorage.setItem("jl_survey_done", "1"); onDone(); }
+    catch { alert(lang === "ru" ? "Не удалось отправить." : "Failed to submit."); }
   };
   return (
     <div className="page fade-in" style={{ minHeight:"100vh", background:"black", display:"flex", alignItems:"center", justifyContent:"center", padding:24 }}>
@@ -724,22 +733,18 @@ const OnboardingSurvey: React.FC<{ onDone: () => void }> = ({ onDone }) => {
         <div style={{ fontSize:22, fontWeight:700, color:"#fff" }}>{lang === "ru" ? "Стань частью FMT.JETLAG" : "Join FMT.JETLAG"}</div>
         <div style={{ height:12 }} />
         <div style={{ fontSize:13, color:"rgba(255,255,255,.65)" }}>{lang === "ru" ? "Короткая анкета • 1 минута" : "Short form • 1 minute"}</div>
-
         <div style={{ height:24 }} />
         <label style={{ display:"block", fontSize:12, marginBottom:6, color:"#fff" }}>{lang === "ru" ? "Имя" : "Name"}</label>
         <input value={name} onChange={e => setName(e.target.value)} placeholder={lang === "ru" ? "Введите имя" : "Enter your name"} style={{ width:"100%", height:44, borderRadius:12, padding:"0 14px", background:"#0f0f0f", border:"1px solid #2a2a2a", color:"#fff" }} />
-
         <div style={{ height:14 }} />
         <label style={{ display:"block", fontSize:12, marginBottom:6, color:"#fff" }}>Email</label>
         <input value={email} onChange={e => setEmail(e.target.value)} placeholder="you@email.com" style={{ width:"100%", height:44, borderRadius:12, padding:"0 14px", background:"#0f0f0f", border:"1px solid #2a2a2a", color:"#fff" }} />
-
         <div style={{ height:14 }} />
         <label style={{ display:"block", fontSize:12, marginBottom:6, color:"#fff" }}>{lang === "ru" ? "Язык" : "Language"}</label>
         <select value={lang} onChange={e => setLang(e.target.value as "ru" | "en")} style={{ width:"100%", height:44, borderRadius:12, padding:"0 10px", background:"#0f0f0f", border:"1px solid #2a2a2a", color:"#fff" }}>
           <option value="ru">Русский</option>
           <option value="en">English</option>
         </select>
-
         <div style={{ height:20 }} />
         <button className="btn" onClick={submit} style={{ width:"100%", height:48, fontWeight:700, opacity: valid ? 1 : .6 }}>
           {lang === "ru" ? "Отправить и продолжить" : "Submit and continue"}
@@ -750,8 +755,8 @@ const OnboardingSurvey: React.FC<{ onDone: () => void }> = ({ onDone }) => {
 };
 
 /** ── Root ─────────────────────────────────────────── */
-export default function App() {
-  const [boot, setBoot] = useState<"checking" | "survey" | "landing" | "app">("checking");
+export default function App(){
+  const [boot, setBoot] = useState<"checking"|"survey"|"landing"|"app">("checking");
   useEffect(() => {
     if (typeof window === "undefined") return;
     const done = localStorage.getItem("jl_survey_done") === "1";
@@ -765,11 +770,11 @@ export default function App() {
 
   const openWhite = () => { try { window.open(WHITE_CHAT_URL, "_blank", "noopener,noreferrer"); } catch {} };
 
-  if (boot === "survey") return <OnboardingSurvey onDone={() => setBoot("landing")} />;
+  if (boot === "survey") return <OnboardingSurvey onDone={()=>setBoot("landing")} />;
   if (boot === "landing") {
     return (
       <LandingScreen
-        onEnterHub={() => { setBoot("app"); setTab("profile"); }}
+        onEnterHub={()=>{ setBoot("app"); setTab("profile"); }}
         onOpenWhite={openWhite}
       />
     );
@@ -781,19 +786,19 @@ export default function App() {
         <TopBar
           status={status}
           plan={plan}
-          onProfile={() => setTab("profile")}
-          onSettings={() => alert("Настройки (демо)")}
-          onOpenPlans={() => setTab("plans")}
+          onProfile={()=>setTab("profile")}
+          onSettings={()=>alert("Настройки (демо)")}
+          onOpenPlans={()=>setTab("plans")}
         />
       )}
 
-      {tab === "landing" && <LandingScreen onEnterHub={() => setTab("profile")} onOpenWhite={openWhite} />}
+      {tab === "landing" && <LandingScreen onEnterHub={()=>setTab("profile")} onOpenWhite={openWhite} />}
       {tab === "home" && <HomeScreen go={setTab} status={status} plan={plan} />}
       {tab === "missions" && <MissionsScreen status={status} plan={plan} />}
       {tab === "events" && <EventsScreen status={status} plan={plan} />}
       {tab === "market" && <MarketScreen />}
       {tab === "jetlag" && <JetlagHub go={setTab} />}
-      {tab === "profile" && <ProfileScreen status={status} plan={plan} jetpoints={jetpoints} next={500} onSettings={() => alert("Настройки (демо)")} />}
+      {tab === "profile" && <ProfileScreen status={status} plan={plan} jetpoints={jetpoints} next={500} onSettings={()=>alert("Настройки (демо)")} />}
       {tab === "plans" && (
         <PlansScreen
           current={plan}
