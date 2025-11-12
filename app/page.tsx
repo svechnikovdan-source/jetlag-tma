@@ -574,30 +574,97 @@ const MarketScreen: React.FC = () => (
 );
 
 const JetlagHub: React.FC<{ go: React.Dispatch<React.SetStateAction<Tab>> }> = ({ go }) => (
-  <div className="page pad fade-in" style={{ position:"relative", backgroundImage:'url("/jetlag-bg.jpg")', backgroundSize:"cover", backgroundPosition:"center", backgroundRepeat:"no-repeat", minHeight:"100vh" }}>
-    <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.55)", zIndex:0 }} />
-    <div style={{ position:"relative", zIndex:1 }}>
-      <div className="card"><div className="card-sec">
-        <div className="t-caption">О нас</div><div className="sp-2" />
-        <div className="h2" style={{ fontSize:18 }}>Empowering talents to<br/>bring value through content</div>
-      </div></div>
+  <div
+    className="page pad fade-in"
+    style={{
+      position: "relative",
+      backgroundImage: 'url("/jetlag-bg.jpg")',
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+      backgroundRepeat: "no-repeat",
+      minHeight: "100vh",
+    }}
+  >
+    <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 0 }} />
+    <div style={{ position: "relative", zIndex: 1 }}>
+      {/* Приветственный блок с аватаркой */}
+      <div className="card">
+        <div className="card-sec" style={{ display: "flex", alignItems: "center", gap: 14 }}>
+          <button
+            onClick={() => go("profile")}
+            aria-label="Открыть профиль"
+            style={{
+              border: "none",
+              background: "transparent",
+              padding: 0,
+              cursor: "pointer",
+              lineHeight: 0,
+              borderRadius: 16,
+              outline: "none",
+            }}
+            title="Перейти в профиль"
+          >
+            {/* Положи картинку в /public, например /daniil.jpg */}
+            <img
+              src="/daniil.jpg"
+              onError={(e) => {
+                // Фолбэк: если нет фото, рисуем заглушку
+                const el = e.currentTarget;
+                el.style.display = "none";
+                const fallback = document.createElement("div");
+                fallback.className = "ava";
+                fallback.style.width = "64px";
+                fallback.style.height = "64px";
+                fallback.style.borderRadius = "16px";
+                fallback.style.display = "flex";
+                fallback.style.alignItems = "center";
+                fallback.style.justifyContent = "center";
+                fallback.style.background = "rgba(255,255,255,.12)";
+                fallback.style.border = "1px solid rgba(255,255,255,.15)";
+                fallback.style.fontWeight = "700";
+                fallback.style.fontSize = "18px";
+                fallback.textContent = "ДС";
+                el.parentElement?.appendChild(fallback);
+              }}
+              alt="Фото профиля"
+              width={64}
+              height={64}
+              style={{
+                width: 64,
+                height: 64,
+                objectFit: "cover",
+                borderRadius: 16,
+                border: "1px solid rgba(255,255,255,.18)",
+                boxShadow: "0 2px 12px rgba(0,0,0,.3)",
+              }}
+            />
+          </button>
 
+          <div>
+            <div className="h2" style={{ fontSize: 16, lineHeight: 1.2 }}>
+              Даниил, ты часть<br/>креативного сообщества FMT.JETLAG
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* дальше оставляю твою прежнюю страницу без изменений */}
       <div className="sp-4" />
-      <div className="h2" style={{ marginBottom:8 }}>Экосистема FMT.JETLAG</div>
+      <div className="h2" style={{ marginBottom: 8 }}>Экосистема FMT.JETLAG</div>
 
       <div className="grid-2">
         {[
-          { t:"Контент", d:"Создаем контент для главных брендов мира", cta:true },
-          { t:"Музыка", d:"Лейбл с крупнейшими артистами России и СНГ", cta:true },
-          { t:"Образование", d:"Магистратура и бакалавр", cta:true },
-          { t:"Усадьба", d:"Резиденция FMT.JETLAG", cta:true },
-          { t:"Спорт", d:"Скоро открытие", cta:false },
-          { t:"Продукты", d:"Скоро запуск", cta:false },
+          { t: "Контент", d: "Создаем контент для главных брендов мира", cta: true },
+          { t: "Музыка", d: "Лейбл с крупнейшими артистами России и СНГ", cta: true },
+          { t: "Образование", d: "Магистратура и бакалавр", cta: true },
+          { t: "Усадьба", d: "Резиденция FMT.JETLAG", cta: true },
+          { t: "Спорт", d: "Скоро открытие", cta: false },
+          { t: "Продукты", d: "Скоро запуск", cta: false },
         ].map((p, i) => (
           <div className="card" key={i}>
             <div className="card-sec">
               <div className="h2">{p.t}</div>
-              <div className="t-body" style={{ marginTop:4 }}>{p.d}</div>
+              <div className="t-body" style={{ marginTop: 4 }}>{p.d}</div>
               <div className="sp-3" />
               {p.cta && <Button kind="secondary" size="s">Подробнее</Button>}
             </div>
@@ -607,7 +674,11 @@ const JetlagHub: React.FC<{ go: React.Dispatch<React.SetStateAction<Tab>> }> = (
 
       <div className="sp-4" />
       <div className="video">
-        <iframe src="https://www.youtube-nocookie.com/embed/-yPMtwa8f14?mute=1&playsinline=1&controls=1&rel=0&modestbranding=1" allow="autoplay; encrypted-media; picture-in-picture" title="FMT.JETLAG" />
+        <iframe
+          src="https://www.youtube-nocookie.com/embed/-yPMtwa8f14?mute=1&playsinline=1&controls=1&rel=0&modestbranding=1"
+          allow="autoplay; encrypted-media; picture-in-picture"
+          title="FMT.JETLAG"
+        />
       </div>
 
       <div className="sp-4" />
@@ -615,16 +686,16 @@ const JetlagHub: React.FC<{ go: React.Dispatch<React.SetStateAction<Tab>> }> = (
       <div className="sp-2" />
       <div className="scroller">
         <div className="rowx">
-          {PEOPLE.map(p => {
-            const init = p.name.split(" ").map(s => s[0]).join("").slice(0, 2).toUpperCase();
+          {PEOPLE.map((p) => {
+            const init = p.name.split(" ").map((s) => s[0]).join("").slice(0, 2).toUpperCase();
             return (
-              <div key={p.id} className="card" style={{ minWidth:220 }}>
+              <div key={p.id} className="card" style={{ minWidth: 220 }}>
                 <div className="card-sec">
-                  <div className="row" style={{ gap:10 }}>
+                  <div className="row" style={{ gap: 10 }}>
                     <div className="ava">{init}</div>
                     <div>
-                      <div className="h2" style={{ fontSize:13 }}>{p.name}</div>
-                      <div className="t-caption" style={{ marginTop:2 }}>{p.role}</div>
+                      <div className="h2" style={{ fontSize: 13 }}>{p.name}</div>
+                      <div className="t-caption" style={{ marginTop: 2 }}>{p.role}</div>
                     </div>
                   </div>
                 </div>
@@ -637,17 +708,24 @@ const JetlagHub: React.FC<{ go: React.Dispatch<React.SetStateAction<Tab>> }> = (
       <div className="sp-4" />
       <div className="card">
         <div className="card-sec">
-          <div className="h2" style={{ marginBottom:8 }}>Новости и релизы</div>
+          <div className="h2" style={{ marginBottom: 8 }}>Новости и релизы</div>
           <div className="list">
-            <div className="card" style={{ background:"rgba(255,255,255,.05)" }}><div className="card-sec">Waterr — новая банка • 12/2025</div></div>
-            <div className="card" style={{ background:"rgba(255,255,255,.05)" }}><div className="card-sec">Cosmetics Travel Kit v2 — обновили формулы и упаковку</div></div>
-            <div className="card" style={{ background:"rgba(255,255,255,.05)" }}><div className="card-sec">Night Tournament — регистрация открыта</div></div>
+            <div className="card" style={{ background: "rgba(255,255,255,.05)" }}>
+              <div className="card-sec">Waterr — новая банка • 12/2025</div>
+            </div>
+            <div className="card" style={{ background: "rgba(255,255,255,.05)" }}>
+              <div className="card-sec">Cosmetics Travel Kit v2 — обновили формулы и упаковку</div>
+            </div>
+            <div className="card" style={{ background: "rgba(255,255,255,.05)" }}>
+              <div className="card-sec">Night Tournament — регистрация открыта</div>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
 );
+
 
 /** ── Профиль ─────────────────────────────────────── */
 const ProfileScreen: React.FC<{ status: StatusLevel; plan: PlanKey; jetpoints: number; next: number; onSettings: () => void; }> =
